@@ -126,13 +126,14 @@ export default function Home() {
           {events?.map((event) => {
             return (
               <div
-                className="rounded-md shadow-sm cursor-pointer hover:shadow-lg"
+                className="rounded-md shadow-sm cursor-pointer hover:shadow-lg "
                 onClick={() => {
                   routert.push(`/events/${event._id}`);
                 }}
               >
                 <div className="flex flex-col">
                   {/* Picture */}
+
                   <Image
                     src={event.imageUrl}
                     height={300}
