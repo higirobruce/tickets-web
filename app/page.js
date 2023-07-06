@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export let url = process.env.NEXT_PUBLIC_TICKETS_BCKEND_URL
-
 // export const events = [
 //   {
 //     _id: "1",
