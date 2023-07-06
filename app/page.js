@@ -97,7 +97,7 @@ export default function Home() {
     });
   }, []);
   return (
-    <main className="flex h-screen flex-col p-24">
+    <main className="flex h-screen flex-col p-10 md:p-24">
       <div className="text-2xl font-semibold mb-5">Upcoming Events</div>
       {/* Event Cards */}
       {loadingEvents && (
@@ -122,7 +122,7 @@ export default function Home() {
         </div>
       )}
       {!loadingEvents && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {events?.map((event) => {
             return (
               <div
@@ -147,7 +147,7 @@ export default function Home() {
 
                   {/* Ente date and time */}
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="flex flex-row items-center space-x-1">
                       <div>
                         <svg

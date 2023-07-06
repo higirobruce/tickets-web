@@ -13,12 +13,18 @@ export default function RootLayout({ children }) {
   const nav = (
     <nav className="p-5 bg-white justify-between flex flex-row">
       {/* <div>Tickets</div> */}
-      <Link href='/' className="text-md">Tee-Kets</Link>
+      <Link href="/" className="text-md">
+        Tee-Kets
+      </Link>
       <div className="flex flex-row space-x-5 items-center">
         {/* <Link href='/' className="text-xs">Home</Link> */}
-        <Link href='/' className="text-xs">Events</Link>
-        <Link href='#contact' scroll={false} className="text-xs">Contact us</Link>
-        
+        <Link href="/" className="text-xs">
+          Events
+        </Link>
+        <Link href="#contact" scroll={false} className="text-xs">
+          Contact us
+        </Link>
+
         <div>
           <svg
             width="18px"
@@ -39,25 +45,33 @@ export default function RootLayout({ children }) {
       </div>
     </nav>
   );
-  const footer = <footer id="contact" className="bg-gray-800 text-gray-300 text-xs grid grid-cols-2 py-3 px-36 gap-5">
-    
-    <div className="flex flex-col ">
-      {/* About Us */}
-      <div className="text-white text-lg">About & Contact us</div>
-      <div className="text-gray-400 text-xs mb-5">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
-    
-      {/* Location */}
-      <div className="text-white text-lg">Our Locations</div>
-      <div className="text-gray-400 text-xs mb-5">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</div>
-    
-    </div>
+  const footer = (
+    <footer
+      id="contact"
+      className="bg-gray-800 text-gray-300 text-xs grid grid-cols-1 md:grid-cols-2 py-3 px-10 md:px-36 gap-5"
+    >
+      <div className="flex flex-col ">
+        {/* About Us */}
+        <div className="text-white text-lg">About & Contact us</div>
+        <div className="text-gray-400 text-xs mb-5">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        </div>
 
-    <div className="flex flex-col ">
-      {/* About Us */}
-      <div className="text-white text-lg">How it works</div>
+        {/* Location */}
+        <div className="text-white text-lg">Our Locations</div>
+        <div className="text-gray-400 text-xs mb-5">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        </div>
+      </div>
 
-    </div>
-  </footer>;
+      <div className="flex flex-col ">
+        {/* About Us */}
+        <div className="text-white text-lg">How it works</div>
+      </div>
+    </footer>
+  );
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gray-100`}>
