@@ -37,7 +37,7 @@ export default function page() {
       {!loadingTickets && (
         <div className="flex flex-col p-10">
           {tickets?.length > 0 && (
-            <div className="grid grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {tickets?.map((ticket) => {
                 return (
                   <div className="flex flex-row space-x-5">

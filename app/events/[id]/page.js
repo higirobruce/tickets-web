@@ -124,8 +124,8 @@ export default function Event({ params }) {
   return (
     <>
       {!loadingEventDetails && (
-        <div className="grid grid-cols-3 py-5 px-36 gap-10">
-          <div className="col-span-2 flex flex-col">
+        <div className="grid grid-cols-1 md:grid-cols-3 py-5 px-10 md:px-36 gap-10">
+          <div className="md:col-span-2 flex flex-col">
             <div className="w-full">
               <Image
                 src={event?.imageUrl}
@@ -140,7 +140,7 @@ export default function Event({ params }) {
 
             <div className="rounded-md bg-white flex flex-col py-5 px-8 mt-5">
               <div className="">Packages</div>
-              <div className="grid grid-cols-3 gap-5 mt-5">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
                 {event?.packages?.map((eventPackage) => {
                   return (
                     <div
