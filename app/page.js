@@ -1,8 +1,12 @@
 "use client";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useNextBlurhash from "use-next-blurhash";
+
+dayjs.extend(relativeTime);
 
 export let url = process.env.NEXT_PUBLIC_TICKETS_BCKEND_URL;
 // export const events = [
@@ -161,7 +165,10 @@ export default function Home() {
                           />
                         </svg>
                       </div>
-                      <div className="text-sm text-gray-700">{event.date}</div>
+                      <div className="text-sm text-gray-700">
+                        {dayjs(event.date).format("DD-MMM-YYYY")}{" "}
+                        ({dayjs(event.date).fromNow()})
+                      </div>
                     </div>
 
                     <div className="flex flex-row items-center space-x-1">
@@ -181,7 +188,9 @@ export default function Home() {
                           />
                         </svg>
                       </div>
-                      <div className="text-sm text-gray-700">{event.time}</div>
+                      <div className="text-sm text-gray-700">
+                        {dayjs(event.date).format("HH:mm a")}
+                      </div>
                     </div>
 
                     <div className="flex flex-row items-center space-x-1">
