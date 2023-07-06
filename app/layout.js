@@ -12,10 +12,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   const nav = (
     <nav className="p-5 bg-white justify-between flex flex-row">
-      <div>Tickets</div>
+      {/* <div>Tickets</div> */}
+      <Link href='/' className="text-md">Tee-Kets</Link>
       <div className="flex flex-row space-x-5 items-center">
-        <Link href='/' className="text-xs">Home</Link>
-        <Link href='/events' className="text-xs">Events</Link>
+        {/* <Link href='/' className="text-xs">Home</Link> */}
+        <Link href='/' className="text-xs">Events</Link>
         <Link href='#contact' scroll={false} className="text-xs">Contact us</Link>
         
         <div>
@@ -62,7 +63,7 @@ export default function RootLayout({ children }) {
       <body className={`${inter.className} bg-gray-100`}>
         {nav}
         {children}
-        {/* {footer} */}
+        {footer}
       </body>
     </html>
   );
