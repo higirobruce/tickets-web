@@ -11,7 +11,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   const nav = (
-    <nav className="p-5 bg-white justify-between flex flex-row">
+    <nav className="p-5 bg-white justify-between flex flex-row sticky top-0 z-30 shadow-sm">
       {/* <div>Tickets</div> */}
       <Link href="/" className="text-md">
         Tee-Kets
