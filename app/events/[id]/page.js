@@ -175,7 +175,6 @@ export default function Event({ params }) {
                             {eventPackage?.price?.toLocaleString()}{" "}
                             {eventPackage?.currency}
                           </div>
-                          
                         </div>
                       );
                     })}
@@ -207,9 +206,7 @@ export default function Event({ params }) {
                 </div>
               )}
             </div>
-          </div>
 
-          <div className="flex flex-col justify-between">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{
@@ -220,68 +217,72 @@ export default function Event({ params }) {
                 type: "tween",
                 ease: "circOut",
               }}
-              className="flex flex-col "
+              className="flex flex-col mt-4 w-full md:w-1/2"
             >
-              {eventPackage?.price && <div className="rounded py-5 px-3 bg-white text-sm font-semibold">
-                <div className="flex flex-row items-center">
-                  <div>Pay with</div>
-                  <div>
-                    <Image src="/images/mtn-2.png" height={50} width={50} />
+              {eventPackage?.price && (
+                <div className="rounded py-5 px-3 bg-white text-sm font-semibold">
+                  <div className="flex flex-row items-center">
+                    <div>Pay with</div>
+                    <div>
+                      <Image src="/images/mtn-2.png" height={50} width={50} />
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-col">
-                  <div className="mt-4">
-                    <form>
-                      <div className="mb-4">
-                        <label
-                          className="block text-gray-700 text-sm mb-2"
-                          for="tel"
-                        >
-                          Enter a telephone number for payment
-                        </label>
+                  <div className="flex flex-col">
+                    <div className="mt-4">
+                      <form>
+                        <div className="mb-4">
+                          <label
+                            className="block text-gray-700 text-sm mb-2"
+                            for="tel"
+                          >
+                            Enter a telephone number for payment
+                          </label>
 
-                        <div className="relative mb-6">
-                          <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                            +250
+                          <div className="relative mb-6">
+                            <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                              +250
+                            </div>
+                            <input
+                              type="tel"
+                              id="tel"
+                              className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block pl-14 p-2.5 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                              placeholder="78xxxxxx"
+                            />
                           </div>
-                          <input
-                            type="tel"
-                            id="tel"
-                            className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block pl-14 p-2.5 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="78xxxxxx"
-                          />
                         </div>
-                      </div>
-                      <div className="flex flex-row items-center justify-between">
-                        <div>Total payment</div>
-                        <div>
-                          {eventPackage?.currency}{" "}
-                          {eventPackage?.price?.toLocaleString()}
+                        <div className="flex flex-row items-center justify-between">
+                          <div>Total payment</div>
+                          <div>
+                            {eventPackage?.currency}{" "}
+                            {eventPackage?.price?.toLocaleString()}
+                          </div>
                         </div>
-                      </div>
 
-                      <div
-                        role="button"
-                        className="my-4 flex flex-row rounded bg-gray-600 text-white w-full items-center justify-center px-2 py-1 cursor-pointer"
-                      >
-                        Pay online
-                      </div>
-                      {/* <input type="tel" className="py-1 px-2 rounded " /> */}
-                    </form>
+                        <div
+                          role="button"
+                          className="my-4 flex flex-row rounded bg-gray-600 text-white w-full items-center justify-center px-2 py-1 cursor-pointer"
+                        >
+                          Pay online
+                        </div>
+                        {/* <input type="tel" className="py-1 px-2 rounded " /> */}
+                      </form>
+                    </div>
+                  </div>
+
+                  {/* We accept */}
+                  <div className="flex flex-col items-center justify-center">
+                    <div className="font-thin">We Accept</div>
+                    <div className="w-1/2 py-3">{breakLine}</div>
+                    <Image src="/images/mtn.png" height={50} width={50} />
                   </div>
                 </div>
-
-                {/* We accept */}
-                <div className="flex flex-col items-center justify-center">
-                  <div className="font-thin">We Accept</div>
-                  <div className="w-1/2 py-3">{breakLine}</div>
-                  <Image src="/images/mtn.png" height={50} width={50} />
-                </div>
-              </div>}
+              )}
             </motion.div>
-            {/* details */}
-            <div className="mt-2 rounded space-y-[2px]">
+          </div>
+
+          <div className="flex flex-col justify-between">
+            <div className="rounded space-y-[2px]">
               <div className="py-5 px-3 bg-white text-sm font-semibold">
                 Event details
               </div>
@@ -385,6 +386,8 @@ export default function Event({ params }) {
                 </div>
               </div>
             </div>
+
+            {/* details */}
           </div>
         </div>
       )}
