@@ -222,7 +222,7 @@ export default function Event({ params }) {
               }}
               className="flex flex-col "
             >
-              <div className="rounded py-5 px-3 bg-white text-sm font-semibold">
+              {eventPackage?.price && <div className="rounded py-5 px-3 bg-white text-sm font-semibold">
                 <div className="flex flex-row items-center">
                   <div>Pay with</div>
                   <div>
@@ -248,7 +248,7 @@ export default function Event({ params }) {
                           <input
                             type="tel"
                             id="tel"
-                            className="bg-gray-50  border-gray-300  text-sm  focus:ring-blue-500 focus:border-blue-500 block pl-14 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block pl-14 p-2.5 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             placeholder="78xxxxxx"
                           />
                         </div>
@@ -278,10 +278,10 @@ export default function Event({ params }) {
                   <div className="w-1/2 py-3">{breakLine}</div>
                   <Image src="/images/mtn.png" height={50} width={50} />
                 </div>
-              </div>
+              </div>}
             </motion.div>
             {/* details */}
-            <div className="rounded space-y-[2px]">
+            <div className="mt-2 rounded space-y-[2px]">
               <div className="py-5 px-3 bg-white text-sm font-semibold">
                 Event details
               </div>
