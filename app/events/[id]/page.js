@@ -103,6 +103,46 @@ export default function Event({ params }) {
   const [blurDataUrl] = useNextBlurhash("L6PZfSi_.AyE_3t7t7R**0o#DgR4");
   let [loadingEventDetails, setLoadingEventDetails] = useState(true);
   let [eventPackage, setPackage] = useState({});
+  let [telephone, setTelephone] = useState(null);
+  let [submittng, setSubmitting] = useState(false);
+
+  async function requestToPay() {
+    setSubmitting(true);
+    return fetch(`${url}/momo/requestToPay`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: eventPackage?.price,
+        currency: "EUR",
+        externalId: 123345,
+        payer: {
+          partyIdType: "MSISDN",
+          partyId: telephone,
+        },
+        payerMessage: `Buying ${eventPackage?.title} ticket for ${event?.title}`,
+        payeeNote: "Note",
+      }),
+    })
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          let err = { status: res.status, statusText: res.statusText };
+          throw Error(JSON.stringify(err));
+        }
+      })
+      .then((res) => {
+        alert(JSON.stringify(res));
+      })
+      .catch((err) => {
+        console.log(url, err);
+      })
+      .finally(() => {
+        setSubmitting(false);
+      });
+  }
 
   useEffect(() => {
     getEventDetails(params?.id, setLoadingEventDetails)
@@ -244,6 +284,7 @@ export default function Event({ params }) {
                               +250
                             </div>
                             <input
+                              onChange={(e) => setTelephone(e.target.value)}
                               type="tel"
                               id="tel"
                               className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block pl-14 p-2.5 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -260,10 +301,12 @@ export default function Event({ params }) {
                         </div>
 
                         <div
+                          onClick={requestToPay}
                           role="button"
                           className="my-4 flex flex-row rounded bg-gray-600 text-white w-full items-center justify-center px-2 py-1 cursor-pointer"
                         >
-                          Pay online
+                          {submittng && "Submitting"}
+                          {!submittng && "Pay online"}
                         </div>
                         {/* <input type="tel" className="py-1 px-2 rounded " /> */}
                       </form>
