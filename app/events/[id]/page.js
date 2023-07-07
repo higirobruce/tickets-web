@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import { url } from "@/app/page";
 import dayjs from "dayjs";
+import { motion } from "framer-motion";
 
 export const events = [
   {
@@ -101,6 +102,7 @@ export default function Event({ params }) {
   let [event, setEvent] = useState(null);
   const [blurDataUrl] = useNextBlurhash("L6PZfSi_.AyE_3t7t7R**0o#DgR4");
   let [loadingEventDetails, setLoadingEventDetails] = useState(true);
+  let [eventPackage, setPackage] = useState({});
 
   useEffect(() => {
     getEventDetails(params?.id, setLoadingEventDetails)
@@ -126,142 +128,260 @@ export default function Event({ params }) {
       {!loadingEventDetails && (
         <div className="grid grid-cols-1 md:grid-cols-3 py-5 px-10 md:px-36 gap-10">
           <div className="md:col-span-2 flex flex-col">
-            <div className="w-full">
-              <Image
-                src={event?.imageUrl}
-                className="rounded-md"
-                height={500}
-                width={1000}
-                placeholder="blur"
-                blurDataURL={blurDataUrl}
-                alt="Picture of the author"
-              />
-            </div>
-
-            <div className="rounded-md bg-white flex flex-col py-5 px-8 mt-5">
-              <div className="">Packages</div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-                {event?.packages?.map((eventPackage) => {
-                  return (
-                    <div
-                      className="flex flex-col p-2 ring-1 ring-amber-500 rounded-md justify-center items-center space-y-3"
-                      onClick={() => {}}
-                    >
-                      <div className="text-sm font-semibold capitalize">
-                        {eventPackage?.title.toUpperCase()}
-                      </div>
-                      <div className="text-base font-semibold">
-                        {eventPackage?.price?.toLocaleString()}{" "}
-                        {eventPackage?.currency}
-                      </div>
-                      <div className="p-2 rounded-md bg-amber-400 w-full justify-center items-center flex m-5 cursor-pointer shadow-sm">
-                        Buy
-                      </div>
-                    </div>
-                  );
-                })}
+            {!eventPackage?.price && (
+              <div className="w-full mb-5">
+                <Image
+                  src={event?.imageUrl}
+                  className="rounded-md"
+                  height={500}
+                  width={1000}
+                  placeholder="blur"
+                  blurDataURL={blurDataUrl}
+                  alt="Picture of the author"
+                />
               </div>
+            )}
+
+            {/* packages */}
+            <div className="rounded-md bg-white flex flex-col py-5 px-8">
+              <div className="flex flex-row items-center justify-between">
+                <div>Packages</div>
+                {eventPackage?.price && (
+                  <div
+                    onClick={() => setPackage({})}
+                    className="text-xs underline hover:text-blue-500 cursor-pointer"
+                  >
+                    Show all{" "}
+                  </div>
+                )}
+              </div>
+
+              {eventPackage?.price && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+                  {event?.packages
+                    ?.filter((ep) => ep?.price === eventPackage?.price)
+                    .map((eventPackage) => {
+                      return (
+                        <div
+                          className="flex flex-col p-2 ring-1 ring-amber-500 rounded-md justify-center items-center space-y-3"
+                          onClick={() => {
+                            setPackage(eventPackage);
+                          }}
+                        >
+                          <div className="text-sm font-semibold capitalize">
+                            {eventPackage?.title.toUpperCase()}
+                          </div>
+                          <div className="text-base font-semibold">
+                            {eventPackage?.price?.toLocaleString()}{" "}
+                            {eventPackage?.currency}
+                          </div>
+                          
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+              {!eventPackage?.price && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+                  {event?.packages?.map((eventPackage) => {
+                    return (
+                      <div
+                        className="flex flex-col p-2 ring-1 ring-amber-500 rounded-md justify-center items-center space-y-3"
+                        onClick={() => {
+                          setPackage(eventPackage);
+                        }}
+                      >
+                        <div className="text-sm font-semibold capitalize">
+                          {eventPackage?.title.toUpperCase()}
+                        </div>
+                        <div className="text-base font-semibold">
+                          {eventPackage?.price?.toLocaleString()}{" "}
+                          {eventPackage?.currency}
+                        </div>
+                        <div className="p-2 rounded-md bg-amber-400 w-full justify-center items-center flex m-5 cursor-pointer shadow-sm">
+                          Buy
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="rounded space-y-[2px]">
-            <div className="py-5 px-3 bg-white text-sm font-semibold">
-              Event details
-            </div>
-            <div className="py-5 px-3 bg-white flex flex-col space-y-5">
-              <div className="flex flex-row items-center space-x-5">
-                <div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="0.8"
-                    stroke="currentColor"
-                    className="w-10 h-10 text-amber-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
-                    />
-                  </svg>
+          <div className="flex flex-col justify-between">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: eventPackage?.price ? 1 : 0,
+              }}
+              transition={{
+                duration: 0.3,
+                type: "tween",
+                ease: "circOut",
+              }}
+              className="flex flex-col "
+            >
+              <div className="rounded py-5 px-3 bg-white text-sm font-semibold">
+                <div className="flex flex-row items-center">
+                  <div>Pay with</div>
+                  <div>
+                    <Image src="/images/mtn-2.png" height={50} width={50} />
+                  </div>
                 </div>
-                <div className="flex flex-col text-sm font-thin">
-                  <div className="font-light">Date and time</div>
-                  <div>{dayjs(event?.date).format("DD-MMM-YYYY hh:mm a")}</div>
+
+                <div className="flex flex-col">
+                  <div className="mt-4">
+                    <form>
+                      <div className="mb-4">
+                        <label
+                          className="block text-gray-700 text-sm mb-2"
+                          for="tel"
+                        >
+                          Enter a telephone number for payment
+                        </label>
+
+                        <div className="relative mb-6">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                            +250
+                          </div>
+                          <input
+                            type="tel"
+                            id="tel"
+                            className="bg-gray-50  border-gray-300  text-sm  focus:ring-blue-500 focus:border-blue-500 block pl-14 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            placeholder="78xxxxxx"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-row items-center justify-between">
+                        <div>Total payment</div>
+                        <div>
+                          {eventPackage?.currency}{" "}
+                          {eventPackage?.price?.toLocaleString()}
+                        </div>
+                      </div>
+
+                      <div
+                        role="button"
+                        className="my-4 flex flex-row rounded bg-gray-600 text-white w-full items-center justify-center px-2 py-1 cursor-pointer"
+                      >
+                        Pay online
+                      </div>
+                      {/* <input type="tel" className="py-1 px-2 rounded " /> */}
+                    </form>
+                  </div>
+                </div>
+
+                {/* We accept */}
+                <div className="flex flex-col items-center justify-center">
+                  <div className="font-thin">We Accept</div>
+                  <div className="w-1/2 py-3">{breakLine}</div>
+                  <Image src="/images/mtn.png" height={50} width={50} />
                 </div>
               </div>
-
-              {breakLine}
-
-              <div className="flex flex-row items-center space-x-5">
-                <div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="0.8"
-                    stroke="currentColor"
-                    className="w-10 h-10 text-amber-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <div className="flex flex-col text-sm font-thin">
-                  <div className="font-light">Status</div>
-                  <div>{event?.status}</div>
-                </div>
+            </motion.div>
+            {/* details */}
+            <div className="rounded space-y-[2px]">
+              <div className="py-5 px-3 bg-white text-sm font-semibold">
+                Event details
               </div>
+              <div className="py-5 px-3 bg-white flex flex-col space-y-5">
+                <div className="flex flex-row items-center space-x-5">
+                  <div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="0.8"
+                      stroke="currentColor"
+                      className="w-10 h-10 text-amber-700"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col text-sm font-thin">
+                    <div className="font-light">Date and time</div>
+                    <div>
+                      {dayjs(event?.date).format("DD-MMM-YYYY hh:mm a")}
+                    </div>
+                  </div>
+                </div>
 
-              {breakLine}
-              <div className="flex flex-row items-center space-x-5">
-                <div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="0.8"
-                    stroke="currentColor"
-                    className="w-10 h-10 text-amber-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"
-                    />
-                  </svg>
-                </div>
-                <div className="flex flex-col text-sm font-thin">
-                  <div className="font-light">Location</div>
-                  <div>{event?.location}</div>
-                </div>
-              </div>
+                {breakLine}
 
-              {breakLine}
-              <div className="flex flex-row items-center space-x-5">
-                <div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth="0.8"
-                    stroke="currentColor"
-                    className="w-10 h-10 text-amber-700"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
+                <div className="flex flex-row items-center space-x-5">
+                  <div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="0.8"
+                      stroke="currentColor"
+                      className="w-10 h-10 text-amber-700"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col text-sm font-thin">
+                    <div className="font-light">Status</div>
+                    <div>{event?.status}</div>
+                  </div>
                 </div>
-                <div className="flex flex-col text-sm font-thin">
-                  <div className="font-light">Artist</div>
-                  <div>{event?.artist}</div>
+
+                {breakLine}
+                <div className="flex flex-row items-center space-x-5">
+                  <div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="0.8"
+                      stroke="currentColor"
+                      className="w-10 h-10 text-amber-700"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col text-sm font-thin">
+                    <div className="font-light">Location</div>
+                    <div>{event?.location}</div>
+                  </div>
+                </div>
+
+                {breakLine}
+                <div className="flex flex-row items-center space-x-5">
+                  <div>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="0.8"
+                      stroke="currentColor"
+                      className="w-10 h-10 text-amber-700"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col text-sm font-thin">
+                    <div className="font-light">Artist</div>
+                    <div>{event?.artist}</div>
+                  </div>
                 </div>
               </div>
             </div>
