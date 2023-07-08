@@ -97,7 +97,7 @@ export default function Home() {
     });
   }, []);
   return (
-    <main className="flex h-screen flex-col p-10 md:p-24">
+    <main className="flex h-screen flex-col px-10 py-5 md:px-24 md:py-10">
       <div className="text-2xl font-semibold mb-5">Upcoming Events</div>
       {/* Event Cards */}
       {loadingEvents && (

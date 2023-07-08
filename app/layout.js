@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
 import Link from "next/link";
+import Image from "next/image";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,7 +15,7 @@ export default function RootLayout({ children }) {
     <nav className="p-5 bg-white justify-between flex flex-row sticky top-0 z-30 shadow-sm">
       {/* <div>Tickets</div> */}
       <Link href="/" className="text-md">
-        EvenTixr
+        <Image src='/android-chrome-192x192.png' height={30} width={30}/>
       </Link>
       <div className="flex flex-row space-x-5 items-center">
         {/* <Link href='/' className="text-xs">Home</Link> */}

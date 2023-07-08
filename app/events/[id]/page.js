@@ -166,7 +166,7 @@ export default function Event({ params }) {
   return (
     <>
       {!loadingEventDetails && (
-        <div className="grid grid-cols-1 md:grid-cols-3 py-5 px-10 md:px-36 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 py-5 px-10 md:px-36 md:py-10 gap-10">
           <div className="md:col-span-2 flex flex-col">
             {!eventPackage?.price && (
               <div className="w-full mb-5">
