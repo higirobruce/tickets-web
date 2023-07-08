@@ -173,11 +173,11 @@ export default function Event({ params }) {
                 <Image
                   src={event?.imageUrl}
                   className="rounded-md"
-                  height={500}
-                  width={1000}
+                  height={100}
+                  width={500}
                   placeholder="blur"
                   blurDataURL={blurDataUrl}
-                  alt="Picture of the author"
+                  alt="Event banner"
                 />
               </div>
             )}
