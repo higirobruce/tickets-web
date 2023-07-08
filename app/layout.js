@@ -15,7 +15,7 @@ export default function RootLayout({ children }) {
     <nav className="p-5 bg-white justify-between flex flex-row sticky top-0 z-30 shadow-sm">
       {/* <div>Tickets</div> */}
       <Link href="/" className="text-md">
-        <Image src='/android-chrome-192x192.png' height={30} width={30}/>
+        <Image src="/android-chrome-192x192.png" height={30} width={30} />
       </Link>
       <div className="flex flex-row space-x-5 items-center">
         {/* <Link href='/' className="text-xs">Home</Link> */}
@@ -75,10 +75,12 @@ export default function RootLayout({ children }) {
   );
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-100`}>
-        {nav}
-        {children}
-        {footer}
+      <body className={`${inter.className} bg-gray-100 justify-between flex flex-col h-screen`}>
+        <div className="flex-grow">
+          {nav}
+          {children}
+        </div>
+        <div>{footer}</div>
       </body>
     </html>
   );

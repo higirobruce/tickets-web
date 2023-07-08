@@ -68,11 +68,20 @@ export const events = [
 ];
 
 export const buidLoader = (
+  // <div
+  //   class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] text-orange-100 motion-reduce:animate-[spin_1.5s_linear_infinite]"
+  //   role="status"
+  // >
+  //   <span class="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+  //     Loading...
+  //   </span>
+  // </div>
+
   <div className="flex flex-col items-center justify-center h-screen">
     <div role="status">
       <svg
         aria-hidden="true"
-        className="w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-orange-600"
+        className="w-8 h-8 mr-2 text-gray-100 animate-spin fill-orange-600"
         viewBox="0 0 100 101"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
