@@ -131,13 +131,16 @@ export default function page() {
             </div>
           </div>
           {ticket?.status == "pending" && (
-            <input
+            <div className="flex flex-col space-y-2 md:w-1/3 w-full">
+              <div className="text-sm text-gray-500">Momo Reference</div>
+              <input
               onChange={(e) => setMomoRef(e.target.value)}
               type="momoRef"
               id="momoRef"
-              className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline md:w-1/3 w-full"
+              className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline "
               placeholder="MoMo Reference"
             />
+            </div>
           )}
 
           {ticket?.status === "pending" && !confirming && (
