@@ -130,13 +130,15 @@ export default function page() {
               </div>
             </div>
           </div>
-          <input
-            onChange={(e) => setMomoRef(e.target.value)}
-            type="momoRef"
-            id="momoRef"
-            className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline md:w-1/3 w-full"
-            placeholder="MoMo Reference"
-          />
+          {ticket?.status == "pending" && (
+            <input
+              onChange={(e) => setMomoRef(e.target.value)}
+              type="momoRef"
+              id="momoRef"
+              className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline md:w-1/3 w-full"
+              placeholder="MoMo Reference"
+            />
+          )}
 
           {ticket?.status === "pending" && !confirming && (
             <div className="md:w-1/3 w-full flex flex-row justify-between text-sm ">
