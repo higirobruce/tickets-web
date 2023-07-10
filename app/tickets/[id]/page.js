@@ -26,9 +26,8 @@ export async function getTicketDetails(id, setLoading) {
   });
 }
 
-
-export async function sellTicket(number) {
-  return fetch(`${url}/tickets/sell/${number}`, {
+export async function sellTicket(number, momoRef) {
+  return fetch(`${url}/tickets/sell/${number}?momoRef=${momoRef}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -42,26 +41,28 @@ export async function sellTicket(number) {
   });
 }
 
-export async function validateTicket(number) {
-    return fetch(`${url}/tickets/validate/${number}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }).then((res) => {
-      if (res.ok) {
-        return res.json();
-      } else {
-        throw Error(res.statusText);
-      }
-    });
-  }
+export async function consumeTicket(number) {
+  return fetch(`${url}/tickets/consume/${number}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then((res) => {
+    if (res.ok) {
+      return res.json();
+    } else {
+      throw Error(res.statusText);
+    }
+  });
+}
+
 export default function page() {
   let [ticket, setTicket] = useState(null);
+  let [momoRef, setMomoRef] = useState(null);
   let [loading, setLoading] = useState(false);
   let [selling, setSelling] = useState(false);
   let [confirming, setConfirming] = useState(false);
-  let [validating, setValidating] = useState(false)
+  let [consuming, setValidating] = useState(false);
   let params = useParams();
   let router = useRouter();
   useEffect(() => {
@@ -78,23 +79,27 @@ export default function page() {
   }, []);
 
   function handleSellTicket() {
-    sellTicket(ticket?.number).then((res) => {
-      if (res.status === "sold") {
-        alert("Successfully Sold the ticket");
-        setTicket(res);
-        setConfirming(false)
-        router.push('/')
-      } else alert("Error");
-    });
+    sellTicket(ticket?.number, momoRef)
+      .then((res) => {
+        if (res.status === "sold") {
+          alert("Successfully Sold the ticket");
+          setTicket(res);
+          setConfirming(false);
+          router.push("/");
+        } else alert("Error");
+      })
+      .catch((err) => {
+        alert(err);
+      });
   }
 
-  function handleValidateTicket() {
-    validateTicket(ticket?.number).then((res) => {
+  function handleConsumeTicket() {
+    consumeTicket(ticket?.number).then((res) => {
       if (res.status === "consumed") {
         alert("Successfully consumed the ticket");
         setTicket(res);
-        setConfirming(false)
-        router.push('/')
+        setConfirming(false);
+        router.push("/");
       } else alert("Error");
     });
   }
@@ -125,13 +130,27 @@ export default function page() {
               </div>
             </div>
           </div>
+          <input
+            onChange={(e) => setMomoRef(e.target.value)}
+            type="momoRef"
+            id="momoRef"
+            className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline md:w-1/3 w-full"
+            placeholder="MoMo Reference"
+          />
 
           {ticket?.status === "pending" && !confirming && (
             <div className="md:w-1/3 w-full flex flex-row justify-between text-sm ">
               {!selling && (
                 <button
-                  onClick={() => setConfirming(true)}
-                  className="px-2 py-1 bg-orange-600 text-white rounded min-w-[80px]"
+                  onClick={() => {
+                    setConfirming(true);
+                  }}
+                  disabled={momoRef ? false : true}
+                  className={`px-2 py-1 ${
+                    momoRef ? "bg-orange-600" : "bg-orange-300"
+                  } ${
+                    momoRef ? "cursor-pointer" : "cursor-not-allowed"
+                  } text-white rounded min-w-[80px]`}
                 >
                   Sell
                 </button>
@@ -171,16 +190,16 @@ export default function page() {
 
           {ticket?.status === "sold" && !confirming && (
             <div className="md:w-1/3 w-full flex flex-row justify-between text-sm ">
-              {!validating && (
+              {!consuming && (
                 <button
                   onClick={() => setConfirming(true)}
                   className="px-2 py-1 bg-green-600 text-white rounded min-w-[80px]"
                 >
-                  Validate
+                  Consume
                 </button>
               )}
 
-              {validating && buidLoader}
+              {consuming && buidLoader}
 
               <button
                 className="px-2 py-1 bg-gray-800 text-white rounded"
@@ -193,9 +212,9 @@ export default function page() {
 
           {ticket?.status === "sold" && confirming && (
             <div className="md:w-1/3 w-full flex flex-col space-y-2 justify-between text-sm ">
-              {!validating && (
+              {!consuming && (
                 <button
-                    onClick={handleValidateTicket}
+                  onClick={handleConsumeTicket}
                   className="px-2 py-1 bg-green-600 text-white rounded w-full"
                 >
                   Confirm
@@ -209,7 +228,7 @@ export default function page() {
                 Cancel
               </button>
 
-              {validating && buidLoader}
+              {consuming && buidLoader}
             </div>
           )}
         </div>
