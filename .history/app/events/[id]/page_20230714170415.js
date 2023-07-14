@@ -128,7 +128,7 @@ export default function Event({ params }) {
         externalId: 123345,
         payer: {
           partyIdType: "MSISDN",
-          partyId: `250${telephone}`,
+          partyId: `${250}${telephone}`,
         },
         payerMessage: `Buying ${eventPackage?.title} ticket for ${event?.title}`,
         payeeNote: "Note",
