@@ -124,7 +124,7 @@ export default function Event({ params }) {
       },
       body: JSON.stringify({
         amount: eventPackage?.price,
-        currency: "RWF",
+        currency: "EUR",
         externalId: 123345,
         payer: {
           partyIdType: "MSISDN",
