@@ -169,12 +169,15 @@ export default function Event({ params }) {
 
   async function getPaymentStatus(ref) {
     setSubmitting(true);
-    return fetch(`${url}/momo/statusOfRequest/${ref}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
+    return fetch(
+      `${url}/momo/statusOfRequest/${ref}?title=${eventPackage?.title}&currency=${eventPackage?.currency}&price=${eventPackage?.price}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    )
       .then((res) => {
         if (res.ok) {
           return res.json();
@@ -513,8 +516,9 @@ export default function Event({ params }) {
           </div>
         </div>
       )}
-      {loadingEventDetails && <div className="h-screen grid content-center">{buidLoader}</div>}
+      {loadingEventDetails && (
+        <div className="h-screen grid content-center">{buidLoader}</div>
+      )}
     </>
   );
 }
-
