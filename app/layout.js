@@ -49,34 +49,42 @@ export default function RootLayout({ children }) {
   const footer = (
     <footer
       id="contact"
-      className="bg-gray-800 text-gray-300 text-xs grid grid-cols-1 md:grid-cols-2 py-3 px-10 md:px-36 gap-5"
+      className="bg-white text-gray-600 text-xs grid grid-cols-1 py-20 px-10 md:px-36 gap-5"
     >
-      <div className="flex flex-col ">
-        {/* About Us */}
-        <div className="text-white text-lg">About & Contact us</div>
-        <div className="text-gray-400 text-xs mb-5">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua.
-        </div>
+      <div className="flex flex-row justify-between items-center">
+        <div className="flex flex-row space-x-4 items-center">
+          {/* Website */}
+          <div>
+            <Link href="https://shapeherd.rw/about/index.html">
+              <Image src="/shapeherd_logo.png" height={100} width={100} />
+            </Link>
+          </div>
 
-        {/* Location */}
-        <div className="text-white text-lg">Our Locations</div>
-        <div className="text-gray-400 text-xs mb-5">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          {/* linkedin */}
+          <div>
+            <Image src="/linked.png" height={20} width={20} />
+          </div>
         </div>
-      </div>
+        <div className="flex flex-col space-y-2">
+          <div className="flex flex-row items-center space-x-2">
+            <div>E-MAIL:</div>
+            <div>info@shapeherd.rw</div>
+          </div>
 
-      <div className="flex flex-col ">
-        {/* About Us */}
-        <div className="text-white text-lg">How it works</div>
+          <div className="flex flex-row items-center space-x-2">
+            <div>CALL:</div>
+            <div>+250 788 317 413</div>
+          </div>
+        </div>
       </div>
     </footer>
   );
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-gray-100 justify-between flex flex-col h-screen`}>
-        <div className="flex-grow">
+      <body
+        className={`${inter.className} bg-gray-100 justify-between flex flex-col h-screen`}
+      >
+        <div className="flex-1">
           {nav}
           {children}
         </div>
@@ -85,3 +93,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

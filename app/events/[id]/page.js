@@ -77,7 +77,7 @@ export const buidLoader = (
   //   </span>
   // </div>
 
-  <div className="flex flex-col items-center justify-center h-screen">
+  <div className="flex flex-col items-center justify-center">
     <div role="status">
       <svg
         aria-hidden="true"
@@ -114,25 +114,66 @@ export default function Event({ params }) {
   let [eventPackage, setPackage] = useState({});
   let [telephone, setTelephone] = useState(null);
   let [submittng, setSubmitting] = useState(false);
+  let [paymentStatus, setPaymentStatus] = useState(null);
+  let [paymentRef, setPaymentRef] = useState(null);
+  let [paymentStatusReason, setPaymentStatusReason] = useState(null);
 
   async function requestToPay() {
     setSubmitting(true);
-    return fetch(`${url}/momo/requestToPay`, {
-      method: "POST",
+    if (telephone.length !== 9 || telephone.charAt(0) !== "7") {
+      alert("Please check the telephone entered and try again.");
+      setSubmitting(false);
+    } else {
+      return fetch(`${url}/momo/requestToPay`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: eventPackage?.price,
+          currency: "RWF",
+          externalId: 123345,
+          payer: {
+            partyIdType: "MSISDN",
+            partyId: `250${telephone}`,
+          },
+          payerMessage: `Buying ${eventPackage?.title} ticket for ${event?.title}`,
+          payeeNote: "Note",
+        }),
+      })
+        .then((res) => {
+          if (res.ok) {
+            return res.json();
+          } else {
+            let err = { status: res.status, statusText: res.statusText };
+            throw Error(JSON.stringify(err));
+          }
+        })
+        .then((res) => {
+          setPaymentRef(res?.refId);
+          setPaymentStatus("pending");
+          setTimeout(async () => {
+            await getPaymentStatus(res?.refId);
+          }, 30000);
+        })
+        .catch((err) => {
+          console.log(url, err);
+        })
+        .finally(() => {
+          setSubmitting(false);
+        });
+    }
+  }
+
+  useEffect(() => {}, [paymentRef]);
+
+  async function getPaymentStatus(ref) {
+    setSubmitting(true);
+    return fetch(`${url}/momo/statusOfRequest/${ref}`, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        amount: eventPackage?.price,
-        currency: "RWF",
-        externalId: 123345,
-        payer: {
-          partyIdType: "MSISDN",
-          partyId: `250${telephone}`,
-        },
-        payerMessage: `Buying ${eventPackage?.title} ticket for ${event?.title}`,
-        payeeNote: "Note",
-      }),
     })
       .then((res) => {
         if (res.ok) {
@@ -142,8 +183,15 @@ export default function Event({ params }) {
           throw Error(JSON.stringify(err));
         }
       })
-      .then((res) => {
-        alert(JSON.stringify(res));
+      .then(async (res) => {
+        let newStatus = res?.status;
+
+        if (newStatus == "PENDING") {
+          await getPaymentStatus(ref);
+        } else {
+          setPaymentStatus(res?.status);
+          setPaymentStatusReason(res?.reason);
+        }
       })
       .catch((err) => {
         console.log(url, err);
@@ -256,81 +304,103 @@ export default function Event({ params }) {
               )}
             </div>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{
-                opacity: eventPackage?.price ? 1 : 0,
-              }}
-              transition={{
-                duration: 0.3,
-                type: "tween",
-                ease: "circOut",
-              }}
-              className="flex flex-col mt-4 w-full md:w-1/2"
-            >
-              {eventPackage?.price && (
-                <div className="rounded py-5 px-3 bg-white text-sm font-semibold">
-                  <div className="flex flex-row items-center">
-                    <div>Pay with</div>
-                    <div>
-                      <Image src="/images/mtn-2.png" height={50} width={50} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
+              {/* Payment Form */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: eventPackage?.price ? 1 : 0,
+                }}
+                transition={{
+                  duration: 0.3,
+                  type: "tween",
+                  ease: "circOut",
+                }}
+                className="flex flex-col mt-4"
+              >
+                {eventPackage?.price && (
+                  <div className="rounded py-5 px-3 bg-white text-sm font-semibold">
+                    <div className="flex flex-row items-center">
+                      <div>Pay with</div>
+                      <div>
+                        <Image src="/images/mtn-2.png" height={50} width={50} />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-col">
-                    <div className="mt-4">
-                      <form>
-                        <div className="mb-4">
-                          <label
-                            className="block text-gray-700 text-sm mb-2"
-                            for="tel"
-                          >
-                            Enter a telephone number for payment
-                          </label>
+                    <div className="flex flex-col">
+                      <div className="mt-4">
+                        <form>
+                          <div className="mb-4">
+                            <label
+                              className="block text-gray-700 text-sm mb-2"
+                              for="tel"
+                            >
+                              Enter a telephone number for payment
+                            </label>
 
-                          <div className="relative mb-6">
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                              +250
+                            <div className="relative mb-6">
+                              <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                                +250
+                              </div>
+                              <input
+                                onChange={(e) => setTelephone(e.target.value)}
+                                type="tel"
+                                id="tel"
+                                className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block pl-14 p-2.5 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                placeholder="78xxxxxx"
+                              />
                             </div>
-                            <input
-                              onChange={(e) => setTelephone(e.target.value)}
-                              type="tel"
-                              id="tel"
-                              className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block pl-14 p-2.5 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                              placeholder="78xxxxxx"
-                            />
                           </div>
-                        </div>
-                        <div className="flex flex-row items-center justify-between">
-                          <div>Total payment</div>
-                          <div>
-                            {eventPackage?.currency}{" "}
-                            {eventPackage?.price?.toLocaleString()}
+                          <div className="flex flex-row items-center justify-between">
+                            <div>Total payment</div>
+                            <div>
+                              {eventPackage?.currency}{" "}
+                              {eventPackage?.price?.toLocaleString()}
+                            </div>
                           </div>
-                        </div>
 
-                        <div
-                          onClick={requestToPay}
-                          role="button"
-                          className="my-4 flex flex-row rounded bg-gray-600 text-white w-full items-center justify-center px-2 py-1 cursor-pointer"
-                        >
-                          {submittng && "Submitting"}
-                          {!submittng && "Pay online"}
-                        </div>
-                        {/* <input type="tel" className="py-1 px-2 rounded " /> */}
-                      </form>
+                          <div
+                            onClick={requestToPay}
+                            role="button"
+                            className="my-4 flex flex-row rounded bg-gray-600 text-white w-full items-center justify-center px-2 py-1 cursor-pointer"
+                          >
+                            {submittng && "Submitting"}
+                            {!submittng && "Pay online"}
+                          </div>
+                          {/* <input type="tel" className="py-1 px-2 rounded " /> */}
+                        </form>
+                      </div>
+                    </div>
+
+                    {/* We accept */}
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="font-thin">We Accept</div>
+                      <div className="w-1/2 py-3">{breakLine}</div>
+                      <Image src="/images/mtn.png" height={50} width={50} />
                     </div>
                   </div>
+                )}
+              </motion.div>
 
-                  {/* We accept */}
-                  <div className="flex flex-col items-center justify-center">
-                    <div className="font-thin">We Accept</div>
-                    <div className="w-1/2 py-3">{breakLine}</div>
-                    <Image src="/images/mtn.png" height={50} width={50} />
-                  </div>
+              {/* Payment Status */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: paymentStatus ? 1 : 0,
+                }}
+                transition={{
+                  duration: 0.3,
+                  type: "tween",
+                  ease: "circOut",
+                }}
+                className="flex flex-col mt-4"
+              >
+                <div className="rounded py-5 px-3 bg-white text-sm font-semibold flex flex-col">
+                  <div>Payment {paymentStatus}</div>
+                  {paymentStatus === "pending" && buidLoader}
                 </div>
-              )}
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
 
           <div className="flex flex-col justify-between">
@@ -443,7 +513,8 @@ export default function Event({ params }) {
           </div>
         </div>
       )}
-      {loadingEventDetails && buidLoader}
+      {loadingEventDetails && <div className="h-screen grid content-center">{buidLoader}</div>}
     </>
   );
 }
+
