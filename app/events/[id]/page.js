@@ -120,6 +120,7 @@ export default function Event({ params }) {
 
   async function requestToPay() {
     setSubmitting(true);
+    setPaymentStatus(null);
     if (telephone.length !== 9 || telephone.charAt(0) !== "7") {
       alert("Please check the telephone entered and try again.");
       setSubmitting(false);
@@ -154,7 +155,7 @@ export default function Event({ params }) {
           setPaymentStatus("pending");
           setTimeout(async () => {
             await getPaymentStatus(res?.refId);
-          }, 30000);
+          }, 15000);
         })
         .catch((err) => {
           console.log(url, err);
@@ -362,14 +363,26 @@ export default function Event({ params }) {
                             </div>
                           </div>
 
-                          <div
-                            onClick={requestToPay}
-                            role="button"
-                            className="my-4 flex flex-row rounded bg-gray-600 text-white w-full items-center justify-center px-2 py-1 cursor-pointer"
-                          >
-                            {submittng && "Submitting"}
-                            {!submittng && "Pay online"}
-                          </div>
+                          {!submittng &&
+                            (paymentStatus?.toLowerCase() == "failed" ||
+                              !paymentStatus) && (
+                              <div
+                                onClick={requestToPay}
+                                role="button"
+                                className="my-4 flex flex-row rounded bg-gray-600 text-white w-full items-center justify-center px-2 py-1 cursor-pointer"
+                              >
+                                Pay online
+                              </div>
+                            )}
+
+                          {submittng && (
+                            <div
+                              role="button"
+                              className="my-4 flex flex-row rounded bg-gray-400 text-white w-full items-center justify-center px-2 py-1 cursor-not-allowed"
+                            >
+                              Submitting
+                            </div>
+                          )}
                           {/* <input type="tel" className="py-1 px-2 rounded " /> */}
                         </form>
                       </div>
@@ -398,9 +411,62 @@ export default function Event({ params }) {
                 }}
                 className="flex flex-col mt-4"
               >
-                <div className="rounded py-5 px-3 bg-white text-sm font-semibold flex flex-col">
+                <div className="rounded py-5 px-3 bg-white text-sm font-semibold flex flex-col space-y-2">
                   <div>Payment {paymentStatus}</div>
-                  {paymentStatus === "pending" && buidLoader}
+                  {paymentStatus?.toLowerCase() === "successful" && (
+                    <div className="p-2 bg-green-500 rounded text-sm font-normal text-white shadow ring-1 ring-white flex flex-col items-center justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-11 h-11 text-white"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"
+                        />
+                      </svg>
+
+                      <div className="">
+                        Thank you for your ticket purchase. We are excited to
+                        welcome you to the event! Kindly present the SMS
+                        confirming your payment at the entrance for entry.
+                      </div>
+                    </div>
+                  )}
+                  {paymentStatus?.toLowerCase() === "failed" && (
+                    <div className="p-2 bg-red-400 rounded text-sm font-normal text-white shadow ring-1 ring-white flex flex-col items-center justify-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-11 h-11"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+                        />
+                      </svg>
+
+                      <div className="">
+                        Unfortunately, the transaction was unsuccessful. Please
+                        make another attempt.
+                      </div>
+                    </div>
+                  )}
+                  {paymentStatus?.toLowerCase() === "pending" && (
+                    <div className="p-2 bg-red-400 rounded text-sm font-normal text-white shadow ring-1 ring-white">
+                      While you're in the process of the transaction, kindly
+                      refrain from navigating away from this page.
+                    </div>
+                  )}
+                  {paymentStatus?.toLowerCase() === "pending" && buidLoader}
                 </div>
               </motion.div>
             </div>
