@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import useNextBlurhash from "use-next-blurhash";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { url } from "@/app/page";
 import dayjs from "dayjs";
@@ -117,6 +117,7 @@ export default function Event({ params }) {
   let [paymentStatus, setPaymentStatus] = useState(null);
   let [paymentRef, setPaymentRef] = useState(null);
   let [paymentStatusReason, setPaymentStatusReason] = useState(null);
+  let router = useRouter();
 
   async function requestToPay() {
     setSubmitting(true);
@@ -195,6 +196,12 @@ export default function Event({ params }) {
         } else {
           setPaymentStatus(res?.status);
           setPaymentStatusReason(res?.reason);
+
+          if (newStatus == "SUCCESSFUL") {
+            setTimeout(() => {
+              router.push("/");
+            }, 5000);
+          }
         }
       })
       .catch((err) => {
