@@ -134,16 +134,16 @@ export default function page() {
             <div className="flex flex-col space-y-2 md:w-1/3 w-full">
               <div className="text-sm text-gray-500">Momo Reference</div>
               <input
-              onChange={(e) => setMomoRef(e.target.value)}
-              type="momoRef"
-              id="momoRef"
-              className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline "
-              placeholder="MoMo Reference"
-            />
+                onChange={(e) => setMomoRef(e.target.value)}
+                type="momoRef"
+                id="momoRef"
+                className="bg-gray-50 border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 block p-2.5 shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline "
+                placeholder="MoMo Reference"
+              />
             </div>
           )}
 
-          {ticket?.status === "pending" && !confirming && (
+          {/* {ticket?.status === "pending" && !confirming && (
             <div className="md:w-1/3 w-full flex flex-row justify-between text-sm ">
               {!selling && (
                 <button
@@ -191,9 +191,9 @@ export default function page() {
 
               {selling && buidLoader}
             </div>
-          )}
+          )} */}
 
-          {ticket?.status === "sold" && !confirming && (
+          {ticket?.status === "pending" && !confirming && (
             <div className="md:w-1/3 w-full flex flex-row justify-between text-sm ">
               {!consuming && (
                 <button
@@ -215,7 +215,7 @@ export default function page() {
             </div>
           )}
 
-          {ticket?.status === "sold" && confirming && (
+          {ticket?.status === "pending" && confirming && (
             <div className="md:w-1/3 w-full flex flex-col space-y-2 justify-between text-sm ">
               {!consuming && (
                 <button
