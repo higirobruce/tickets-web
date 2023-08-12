@@ -1,7 +1,7 @@
 "use client";
 import { buidLoader } from "@/app/events/[id]/page";
 import { url } from "@/app/page";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
   DocumentTextIcon,
@@ -28,7 +28,7 @@ export async function getTicketDetails(id, setLoading) {
 }
 
 export async function sellTicket(number, momoRef) {
-  return fetch(`${url}/tickets/sell/${number}?momoRef=${momoRef}`, {
+  return fetch(`${url}/tickets/sell/${number}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -66,6 +66,8 @@ export default function page() {
   let [consuming, setValidating] = useState(false);
   let params = useParams();
   let router = useRouter();
+  const searchParams = useSearchParams();
+  const showOnly = searchParams.get("showOnly");
   useEffect(() => {
     getTicketDetails(params.id, setLoading)
       .then((res) => {
@@ -104,6 +106,7 @@ export default function page() {
       } else alert("Error");
     });
   }
+
   return (
     <div>
       {loading && buidLoader}
@@ -129,9 +132,15 @@ export default function page() {
                   {ticket?.ticketPackage?.currency}
                 </div>
               </div>
+
+              <div className="flex flex-row space-x-2 items-center">
+                {/* <TagIcon className="h-5 w-5 text-orange-500" /> */}
+
+                <div>{ticket?.status}</div>
+              </div>
             </div>
           </div>
-          {ticket?.status == "pending" && (
+          {/* {ticket?.status == "pending" && (
             <div className="flex flex-col space-y-2 md:w-1/3 w-full">
               <div className="text-sm text-gray-500">Momo Reference</div>
               <input
@@ -142,7 +151,7 @@ export default function page() {
                 placeholder="MoMo Reference"
               />
             </div>
-          )}
+          )} */}
 
           {/* {ticket?.status === "pending" && !confirming && (
             <div className="md:w-1/3 w-full flex flex-row justify-between text-sm ">
@@ -151,12 +160,8 @@ export default function page() {
                   onClick={() => {
                     setConfirming(true);
                   }}
-                  disabled={momoRef ? false : true}
-                  className={`px-2 py-1 ${
-                    momoRef ? "bg-orange-600" : "bg-orange-300"
-                  } ${
-                    momoRef ? "cursor-pointer" : "cursor-not-allowed"
-                  } text-white rounded min-w-[80px]`}
+                  // disabled={momoRef ? false : true}
+                  className="px-2 py-1 bg-orange-600 text-white rounded "
                 >
                   Sell
                 </button>
@@ -194,7 +199,8 @@ export default function page() {
             </div>
           )} */}
 
-          {ticket?.status === "pending" && !confirming && (
+          {/* DISCARDED */}
+          {ticket?.status === "pending" && !confirming && !showOnly && (
             <div className="md:w-1/3 w-full flex flex-row justify-between text-sm ">
               {!consuming && (
                 <button
