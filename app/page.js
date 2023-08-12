@@ -167,8 +167,8 @@ export default function Home() {
                         </svg>
                       </div>
                       <div className="text-sm text-gray-700">
-                        {dayjs(event.date).format("DD-MMM-YYYY")}{" "}
-                        ({dayjs(event.date).fromNow()})
+                        {dayjs(event.date).format("DD-MMM-YYYY")} (
+                        {dayjs(event.date).fromNow()})
                       </div>
                     </div>
 
@@ -220,6 +220,15 @@ export default function Home() {
                         {event.location}
                       </div>
                     </div>
+
+                    <button
+                      onClick={() => {
+                        routert.push(`/events/${event._id}`);
+                      }}
+                      className="px-2 py-1 bg-orange-600 text-white rounded"
+                    >
+                      Buy ticket
+                    </button>
                   </div>
                 </div>
               </div>
