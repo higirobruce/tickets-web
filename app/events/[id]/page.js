@@ -132,7 +132,7 @@ export default function Event({ params }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: 1, //eventPackage?.price,
+          amount: 10, //eventPackage?.price,
           currency: "RWF",
           externalId: 123345,
           payer: {
