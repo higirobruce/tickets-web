@@ -102,7 +102,7 @@ export default function page() {
         alert("Successfully consumed the ticket");
         setTicket(res);
         setConfirming(false);
-        router.push("/");
+        
       } else alert("Error");
     });
   }
