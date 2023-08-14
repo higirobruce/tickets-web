@@ -25,6 +25,9 @@ export default function RootLayout({ children }) {
         <Link href="#contact" scroll={false} className="text-xs">
           Contact us
         </Link>
+        <Link href="/admin" scroll={false} className="text-xs">
+          My events
+        </Link>
 
         <div>
           <svg
