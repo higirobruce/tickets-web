@@ -292,12 +292,7 @@ export default function Event({ params }) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
                   {event?.packages?.map((eventPackage) => {
                     return (
-                      <div
-                        className="flex flex-col p-2 ring-1 ring-amber-500 rounded-md justify-center items-center space-y-3"
-                        onClick={() => {
-                          setPackage(eventPackage);
-                        }}
-                      >
+                      <div className="flex flex-col p-2 ring-1 ring-amber-500 rounded-md justify-center items-center space-y-3">
                         <div className="text-sm font-semibold capitalize">
                           {eventPackage?.title.toUpperCase()}
                         </div>
@@ -305,9 +300,21 @@ export default function Event({ params }) {
                           {eventPackage?.price?.toLocaleString()}{" "}
                           {eventPackage?.currency}
                         </div>
-                        <div className="p-2 rounded-md bg-amber-400 w-full justify-center items-center flex m-5 cursor-pointer shadow-sm">
-                          Buy
-                        </div>
+                        {eventPackage?.price === 5000 && (
+                          <div className="p-2 rounded-md bg-amber-100 w-full justify-center items-center flex m-5 cursor-not-allowed shadow-sm">
+                            Sold out
+                          </div>
+                        )}
+                        {eventPackage?.price !== 5000 && (
+                          <div
+                            onClick={() => {
+                              setPackage(eventPackage);
+                            }}
+                            className="p-2 rounded-md bg-amber-400 w-full justify-center items-center flex m-5 cursor-pointer shadow-sm"
+                          >
+                            Buy
+                          </div>
+                        )}
                       </div>
                     );
                   })}

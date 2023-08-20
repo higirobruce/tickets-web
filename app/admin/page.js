@@ -118,24 +118,52 @@ export default function Admin() {
       .catch((err) => {});
   }, []);
 
+  // function login() {
+  //   if (password === "password@Josh2023" && username === "admin") {
+  //     localStorage.setItem(
+  //       "user",
+  //       JSON.stringify({
+  //         username,
+  //         password,
+  //       })
+  //     );
+  //     setUser(
+  //       JSON.stringify({
+  //         username,
+  //         password,
+  //       })
+  //     );
+  //   } else {
+  //     alert("Check username/password");
+  //   }
+  // }
   function login() {
-    if (password === "password@Josh2023" && username==='admin') {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          username,
-          password,
-        })
-      );
-      setUser(
-        JSON.stringify({
-          username,
-          password,
-        })
-      );
-    } else {
-      alert('Check username/password');
-    }
+    fetch(`${url}/users/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    })
+      .then((res) => res.json())
+      .then((res) => {
+        if (res) {
+          console.log("EEEE", res);
+          localStorage.setItem(
+            "user",
+            JSON.stringify(res)
+          );
+          setUser(JSON.stringify(res));
+        } else {
+          alert("Check username/password");
+        }
+      })
+      .catch((err) => {
+        console.log("EEEEEE", err);
+      });
   }
   return (
     <>
@@ -175,12 +203,10 @@ export default function Admin() {
                 <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                   Sign in to your account
                 </h1>
-                <form
-                  className="space-y-4 md:space-y-6"
-                >
+                <div className="space-y-4 md:space-y-6">
                   <div>
                     <label
-                      for="email"
+                      htmlFor="email"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
                       Your username
@@ -198,7 +224,7 @@ export default function Admin() {
                   </div>
                   <div>
                     <label
-                      for="password"
+                      htmlFor="password"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
                       Password
@@ -227,7 +253,7 @@ export default function Admin() {
                       </div>
                       <div className="ml-3 text-sm">
                         <label
-                          for="remember"
+                          htmlFor="remember"
                           className="text-gray-500 dark:text-gray-300"
                         >
                           Remember me
@@ -257,7 +283,7 @@ export default function Admin() {
                       Sign up
                     </a>
                   </p> */}
-                </form>
+                </div>
               </div>
             </div>
           </div>

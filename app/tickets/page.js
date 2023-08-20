@@ -34,8 +34,8 @@ export default function page() {
   }, []);
   return (
     <>
-      {!loadingTickets && (
-        <div className="flex flex-col p-10">
+      {/* {!loadingTickets && (
+        <div className="grid grid-cols-1 md:grid-cols-3 py-5 px-10 md:px-36 md:py-10 gap-10">
           {tickets?.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {tickets?.map((ticket) => {
@@ -51,9 +51,7 @@ export default function page() {
                         {ticket?.ticketPackage?.price.toLocaleString()}{" "}
                         {ticket?.ticketPackage?.currency}
                       </div>
-                      {/* <div className={`rounded-full ${ticket?.status=='consumed'? 'bg-gray-300' : 'bg-orange-500'} text-white items-center justify-center flex`}>
-                    {ticket?.status}
-                  </div> */}
+                     
                     </div>
                   </div>
                 );
@@ -62,7 +60,9 @@ export default function page() {
           )}
         </div>
       )}
-      {loadingTickets && buidLoader}
+      {loadingTickets && buidLoader} */}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 py-5 px-10 md:px-36 md:py-10 gap-10"></div>
     </>
   );
 }

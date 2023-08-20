@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import dayjs from "dayjs";
+import Admin from "@/app/admin/page";
 
 export async function getTicketDetails(id, setLoading) {
   setLoading(true);
@@ -27,8 +28,8 @@ export async function getTicketDetails(id, setLoading) {
   });
 }
 
-export async function sellTicket(number, momoRef) {
-  return fetch(`${url}/tickets/sell/${number}`, {
+export async function sellTicket(number, momoRef, doneBy) {
+  return fetch(`${url}/tickets/sell/${number}?doneBy=${doneBy}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -42,8 +43,8 @@ export async function sellTicket(number, momoRef) {
   });
 }
 
-export async function consumeTicket(number) {
-  return fetch(`${url}/tickets/consume/${number}`, {
+export async function consumeTicket(number, doneBy) {
+  return fetch(`${url}/tickets/consume/${number}?doneBy=${doneBy}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -58,6 +59,7 @@ export async function consumeTicket(number) {
 }
 
 export default function page() {
+  let [user, setUser] = useState(null);
   let [ticket, setTicket] = useState(null);
   let [momoRef, setMomoRef] = useState(null);
   let [loading, setLoading] = useState(false);
@@ -69,6 +71,8 @@ export default function page() {
   const searchParams = useSearchParams();
   const showOnly = searchParams.get("showOnly");
   useEffect(() => {
+    console.log("feteceehe");
+    setUser(JSON.parse(localStorage.getItem("user")));
     getTicketDetails(params.id, setLoading)
       .then((res) => {
         setTicket(res);
@@ -97,12 +101,11 @@ export default function page() {
   }
 
   function handleConsumeTicket() {
-    consumeTicket(ticket?.number).then((res) => {
+    consumeTicket(ticket?.number, user?._id).then((res) => {
       if (res.status === "consumed") {
         alert("Successfully consumed the ticket");
         setTicket(res);
         setConfirming(false);
-        
       } else alert("Error");
     });
   }
@@ -110,7 +113,7 @@ export default function page() {
   return (
     <div>
       {loading && buidLoader}
-      {!loading && (
+      {!loading && (user || (!user && showOnly)) && (
         <div className="flex flex-col items-center justify-center px-5 md:px-36 py-10 md:py-20 space-y-5">
           <div className="flex flex-row justify-between bg-white p-5 rounded-md ring-1 ring-orange-200 md:w-1/3 w-full">
             <Image width={100} height={100} src={ticket?.qrCode} />
@@ -268,6 +271,8 @@ export default function page() {
           )}
         </div>
       )}
+
+      {!loading && !showOnly && !user && <Admin />}
     </div>
   );
 }

@@ -26,7 +26,7 @@ export default function RootLayout({ children }) {
           Contact us
         </Link>
         <Link href="/admin" scroll={false} className="text-xs">
-          My events
+          Login
         </Link>
 
         <div>
