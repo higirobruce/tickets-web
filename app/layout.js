@@ -84,16 +84,11 @@ export default function RootLayout({ children }) {
   );
   return (
     <html lang="en">
-      <body
-        className={`${inter.className} bg-gray-100 justify-between flex flex-col h-screen`}
-      >
-        <div className="flex-1">
-          {nav}
-          {children}
-        </div>
+      <body className={`${inter.className} bg-gray-100 flex flex-col`}>
+        <div>{nav}</div>
+        <div>{children}</div>
         <div>{footer}</div>
       </body>
     </html>
   );
 }
-
