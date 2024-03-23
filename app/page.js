@@ -226,7 +226,7 @@ export default function Home() {
                         routert.push(`/events/${event._id}`);
                       }}
                       disabled={dayjs(event.date).isBefore(dayjs())}
-                      className="px-2 py-1 bg-orange-600 text-white rounded"
+                      className="px-2 py-1 bg-orange-600 text-white rounded disabled:bg-orange-300 disabled:cursor-not-allowed"
                     >
                       Buy ticket
                     </button>
