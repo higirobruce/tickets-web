@@ -300,12 +300,12 @@ export default function Event({ params }) {
                           {eventPackage?.price?.toLocaleString()}{" "}
                           {eventPackage?.currency}
                         </div>
-                        {eventPackage?.price === 5000 && (
+                        {eventPackage?.soldOut && (
                           <div className="p-2 rounded-md bg-amber-100 w-full justify-center items-center flex m-5 cursor-not-allowed shadow-sm">
                             Sold out
                           </div>
                         )}
-                        {eventPackage?.price !== 5000 && (
+                        {!eventPackage?.price && (
                           <div
                             onClick={() => {
                               setPackage(eventPackage);
