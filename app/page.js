@@ -225,6 +225,7 @@ export default function Home() {
                       onClick={() => {
                         routert.push(`/events/${event._id}`);
                       }}
+                      disabled={dayjs(event.date).isBefore(dayjs())}
                       className="px-2 py-1 bg-orange-600 text-white rounded"
                     >
                       Buy ticket
