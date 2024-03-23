@@ -305,7 +305,7 @@ export default function Event({ params }) {
                             Sold out
                           </div>
                         )}
-                        {!eventPackage?.price && (
+                        {!eventPackage?.soldOut && (
                           <div
                             onClick={() => {
                               setPackage(eventPackage);
@@ -315,7 +315,7 @@ export default function Event({ params }) {
                             Buy
                           </div>
                         )}
-                        
+
                       </div>
                     );
                   })}
