@@ -315,6 +315,7 @@ export default function Event({ params }) {
                             Buy
                           </div>
                         )}
+                        
                       </div>
                     );
                   })}
