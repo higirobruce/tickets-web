@@ -46,7 +46,7 @@ test("buy a ticket, open it from its link, scan it, see it on the dashboard", as
   await page.goto(`/events/${event._id}`);
   await page.getByRole("radio", { name: /VIP/ }).click();
   await page.getByLabel("Enter a telephone number for payment").fill("788123456");
-  await page.getByRole("button", { name: "Pay online" }).click();
+  await page.getByRole("button", { name: /^Pay / }).click();
 
   // Mock payments confirm within seconds
   const ticketLink = page.getByRole("link", { name: /^Ticket \d+$/ });
@@ -102,12 +102,11 @@ test("organiser can sign up and create an event through the UI", async ({ page }
 test("gate staff created by an organiser can admit a ticket from the scan page", async ({ page, request }) => {
   const { token, event } = await seed(request);
   // one ticket via mock payment
-  const pay = await request.post(`${API}/momo/requestToPay`, {
-    data: { amount: "5000", currency: "RWF", payer: { partyIdType: "MSISDN", partyId: "250788000111" }, eventId: event._id, ticketPackage: event.packages[0], quantity: 1 },
+  const pay = await request.post(`${API}/payments/start`, {
+    data: { provider: "mock", eventId: event._id, packageId: event.packages[0]._id, quantity: 1, phone: "788000111" },
   });
-  const { refId } = await pay.json();
-  const status = await request.get(`${API}/momo/statusOfRequest/${refId}`);
-  const { tickets } = await status.json();
+  expect(pay.ok()).toBeTruthy();
+  const { tickets } = await pay.json();
   const number = String(tickets[0].number);
 
   const staffEmail = `gate-${suffix}@example.com`;
