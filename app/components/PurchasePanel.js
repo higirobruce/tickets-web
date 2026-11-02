@@ -12,6 +12,12 @@ const PLACEHOLDERS = { 250: "78xxxxxxx", 257: "6xxxxxxx" };
 const LOOKUP_DELAY_MS = 600;
 const NO_LOOKUP = { checking: false, ok: false, name: null, reason: null };
 
+/** The providers that can take this currency, and the one in use (the chosen one if it fits, else the first). */
+function pickProvider(providers, currency, providerId) {
+  const options = providers.filter((p) => !(p.currencies || []).length || p.currencies.includes(currency));
+  return { options, provider: options.find((p) => p.id === providerId) || options[0] || null };
+}
+
 /** Package picker plus the payment method, payment form and result. Lives on the event page. */
 export default function PurchasePanel({ event }) {
   const packages = event.packages || [];
@@ -25,9 +31,9 @@ export default function PurchasePanel({ event }) {
   const [lookup, setLookup] = useState(NO_LOOKUP);
   const { providers, loading: providersLoading, error: providersError } = useProviders();
   const currency = selected?.currency || "RWF";
-  const options = providers.filter((p) => !p.currencies.length || p.currencies.includes(currency));
-  const provider = options.find((p) => p.id === providerId) || options[0] || null;
+  const { options, provider } = pickProvider(providers, currency, providerId);
   const payment = usePayment(event, selected, provider);
+  const locked = payment.busy || payment.unresolved; // a payment is under way; nothing may start another
   const past = new Date(event.date) < new Date();
   const digits = phone.replace(/\s+/g, "");
   const phoneRule = provider?.phone;
@@ -53,17 +59,19 @@ export default function PurchasePanel({ event }) {
   }, [needsLookup, digits, phoneValid, provider?.id]);
 
   function choose(pkg) {
+    if (!payment.reset()) return;
+    const next = pickProvider(providers, pkg.currency || "RWF", providerId).provider;
+    if (next?.id !== provider?.id) setPhone("");
     setSelected(pkg);
     setQuantity(1);
     setFormError(null);
-    payment.reset();
   }
 
   function chooseProvider(p) {
+    if (!payment.reset()) return;
     setProviderId(p.id);
     setPhone("");
     setFormError(null);
-    payment.reset();
   }
 
   function submit(e) {
@@ -93,7 +101,7 @@ export default function PurchasePanel({ event }) {
         <div className="grid gap-2" role="radiogroup" aria-label="Ticket package">
           {packages.map((pkg) => {
             const active = selected?._id === pkg._id || (selected && !pkg._id && selected.title === pkg.title);
-            const disabled = past || pkg.soldOut;
+            const disabled = past || pkg.soldOut || locked;
             const fewLeft = typeof pkg.remaining === "number" && pkg.remaining > 0 && pkg.remaining <= 10;
             return (
               <button
@@ -130,7 +138,7 @@ export default function PurchasePanel({ event }) {
       )}
 
       {selected && !finished && provider && (
-        <form onSubmit={submit} className="space-y-4" aria-busy={payment.busy}>
+        <form onSubmit={submit} className="space-y-4" aria-busy={locked}>
           {options.length > 1 && (
             <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Payment method">
               {options.map((p) => {
@@ -141,7 +149,7 @@ export default function PurchasePanel({ event }) {
                     type="button"
                     role="radio"
                     aria-checked={active}
-                    disabled={payment.busy}
+                    disabled={locked}
                     onClick={() => chooseProvider(p)}
                     className={`flex items-center gap-3 rounded-[var(--radius-control)] px-4 py-3 text-left ring-1 transition-colors ${
                       active ? "ring-2 ring-ember bg-ember-soft" : "ring-mist hover:ring-ink-soft"
@@ -169,13 +177,13 @@ export default function PurchasePanel({ event }) {
                   placeholder={PLACEHOLDERS[phoneRule?.countryCode] || ""}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  disabled={payment.busy}
+                  disabled={locked}
                 />
               </div>
             </div>
             <div>
               <label htmlFor="qty" className="label">Tickets</label>
-              <select id="qty" className="input w-20" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} disabled={payment.busy}>
+              <select id="qty" className="input w-20" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} disabled={locked}>
                 {Array.from({ length: Math.max(1, Math.min(6, typeof selected.remaining === "number" ? selected.remaining : 6)) }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>{n}</option>
                 ))}
@@ -185,11 +193,11 @@ export default function PurchasePanel({ event }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label htmlFor="buyerName" className="label">Name (optional)</label>
-              <input id="buyerName" className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={payment.busy} autoComplete="name" />
+              <input id="buyerName" className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={locked} autoComplete="name" />
             </div>
             <div>
               <label htmlFor="buyerEmail" className="label">Email for a copy (optional)</label>
-              <input id="buyerEmail" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} disabled={payment.busy} autoComplete="email" />
+              <input id="buyerEmail" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} disabled={locked} autoComplete="email" />
             </div>
           </div>
           {needsLookup && lookup.checking && <p className="text-sm text-ink-soft">Checking the wallet holder…</p>}
@@ -201,7 +209,7 @@ export default function PurchasePanel({ event }) {
             <span className="text-ink-soft">Total</span>
             <span className="font-display font-bold text-lg tabular-nums">{total.toLocaleString()} {currency}</span>
           </div>
-          {!payment.busy && (
+          {!locked && (
             <button type="submit" className="btn-primary w-full" disabled={needsLookup && !lookup.ok}>
               {logo && <Image src={logo} alt="" width={22} height={22} className="rounded-sm" />}
               Pay {total.toLocaleString()} {currency}
@@ -221,6 +229,12 @@ export default function PurchasePanel({ event }) {
                 No confirmation from {provider.label} yet. If you approved the payment on your phone, check again. Your ticket will also arrive by SMS.
               </div>
               <button type="button" onClick={payment.checkAgain} className="btn-ghost w-full">Check again</button>
+              <div className="text-center text-sm">
+                <button type="button" onClick={payment.startOver} className="underline text-ink-soft hover:text-ink">
+                  Start a new payment
+                </button>
+                <p className="text-xs text-ink-soft">Only if you did not approve the first request. Approving both would charge you twice.</p>
+              </div>
             </div>
           )}
         </form>
@@ -254,7 +268,7 @@ export default function PurchasePanel({ event }) {
           </div>
           <p className="text-sm">The payment did not go through. No ticket was issued; you can try again.</p>
           {payment.reason && <div className="text-xs">Reason: {String(payment.reason)}</div>}
-          <button type="button" onClick={payment.reset} className="btn-ghost btn-sm">Try again</button>
+          <button type="button" onClick={payment.startOver} className="btn-ghost btn-sm">Try again</button>
         </div>
       )}
     </div>
