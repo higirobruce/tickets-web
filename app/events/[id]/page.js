@@ -18,7 +18,7 @@ export async function generateMetadata({ params }) {
   const event = await loadEvent(id);
   if (!event) return { title: "Event not found" };
   const when = dayjs(event.date).format("ddd D MMM YYYY, HH:mm");
-  const description = `${when} at ${event.location}. ${fromPrice(event) ? `Tickets from ${fromPrice(event)}.` : ""} Pay with MTN MoMo on EvenTixr.`;
+  const description = `${when} at ${event.location}. ${fromPrice(event) ? `Tickets from ${fromPrice(event)}.` : ""} Pay by mobile money on EvenTixr.`;
   return {
     title: event.title,
     description,

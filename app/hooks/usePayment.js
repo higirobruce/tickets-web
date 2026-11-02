@@ -6,6 +6,35 @@ import { readError } from "../lib/session";
 const FIRST_POLL_DELAY_MS = 15000;
 const POLL_INTERVAL_MS = 5000;
 const MAX_POLLS = 24; // about two minutes after the first check
+const RESUME_WINDOW_MS = 2 * 60 * 60 * 1000; // a reference older than this is not resumed after a reload
+
+const storageKey = (eventId) => `eventixr.payment.${eventId}`;
+
+/** The unresolved payment saved for this event, or null. Storage may be unavailable; that is not an error. */
+function readSaved(eventId) {
+  try {
+    const raw = sessionStorage.getItem(storageKey(eventId));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSaved(entry) {
+  try {
+    sessionStorage.setItem(storageKey(entry.eventId), JSON.stringify(entry));
+  } catch {
+    // private mode or storage full: the guard then lasts only as long as the page
+  }
+}
+
+function removeSaved(eventId) {
+  try {
+    sessionStorage.removeItem(storageKey(eventId));
+  } catch {
+    // nothing to clean up
+  }
+}
 
 /**
  * Drives one purchase with the chosen provider: start, poll with a cap, and the result.
@@ -15,6 +44,11 @@ const MAX_POLLS = 24; // about two minutes after the first check
  * that has not reached a final status. Until then no second payment can start and reset() does
  * nothing: a new reference would be a second prompt or debit on the buyer's phone. startOver()
  * is the one deliberate way out, for a buyer who never approved the first request.
+ *
+ * An unresolved reference is kept in sessionStorage so a reload or a trip back to the event
+ * resumes checking it instead of offering a fresh Pay button. A start request that never got an
+ * answer (network failure) is also unresolved: the provider may have charged, so Pay stays hidden
+ * until the buyer chooses startOver().
  */
 export default function usePayment(event, eventPackage, provider) {
   const [status, setStatus] = useState(null); // null | pending | SUCCESSFUL | FAILED | ...
@@ -25,6 +59,10 @@ export default function usePayment(event, eventPackage, provider) {
   const [timedOut, setTimedOut] = useState(false);
   const [testMode, setTestMode] = useState(false);
   const [unresolved, setUnresolvedState] = useState(false);
+  const [unknownOutcome, setUnknownOutcome] = useState(false); // the start request got no answer
+  const [uncertain, setUncertain] = useState(false); // the start failed after the provider may have moved money
+  const [pendingRef, setPendingRef] = useState(null); // { refId, packageId, providerId } of the unresolved payment
+  const lostStart = useRef(false); // mirrors unknownOutcome for the synchronous guards
   const refId = useRef(null); // reference of the payment still waiting for a final status
   const starting = useRef(false); // a start request is in flight
   const timer = useRef(null);
@@ -39,12 +77,41 @@ export default function usePayment(event, eventPackage, provider) {
     [],
   );
 
+  // Resume a payment that was still unresolved when this page was last left or reloaded.
+  const eventId = event?._id;
+  useEffect(() => {
+    if (!eventId || isUnresolved()) return;
+    const saved = readSaved(eventId);
+    if (!saved) return;
+    if (!saved.refId || !(Date.now() - saved.startedAt < RESUME_WINDOW_MS)) {
+      removeSaved(eventId);
+      return;
+    }
+    setUncertain(Boolean(saved.uncertain));
+    track(saved.refId, saved.packageId, saved.providerId, saved.uncertain, saved.startedAt);
+    setStatus("pending");
+    poll(1, generation.current);
+    // poll and track only touch refs and setters; the event id is what matters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
+
+  // Leaving the page while a payment is unresolved loses sight of it; ask the browser to confirm.
+  useEffect(() => {
+    if (!unresolved) return;
+    const warn = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [unresolved]);
+
   function setBusy(value) {
     busyNow.current = value;
     setBusyState(value);
   }
 
-  const isUnresolved = () => starting.current || refId.current !== null;
+  const isUnresolved = () => starting.current || refId.current !== null || lostStart.current;
   const syncUnresolved = () => setUnresolvedState(isUnresolved());
 
   function clear() {
@@ -65,17 +132,39 @@ export default function usePayment(event, eventPackage, provider) {
     return true;
   }
 
+  /** Remember the reference being checked, here and in sessionStorage. */
+  function track(id, packageId, providerId, wasUncertain, startedAt = Date.now()) {
+    refId.current = id;
+    setPendingRef({ refId: id, packageId, providerId });
+    if (eventId) writeSaved({ refId: id, eventId, packageId, providerId, uncertain: Boolean(wasUncertain), startedAt });
+    syncUnresolved();
+  }
+
+  /** Forget the reference: it reached a final status or the buyer gave up on it. */
+  function untrack() {
+    refId.current = null;
+    setPendingRef(null);
+    if (eventId) removeSaved(eventId);
+  }
+
+  function setLostStart(value) {
+    lostStart.current = value;
+    setUnknownOutcome(value);
+  }
+
   /** Abandon the unresolved payment, if any, and clear everything. */
   function startOver() {
-    refId.current = null;
+    untrack();
     starting.current = false;
+    setLostStart(false);
+    setUncertain(false);
     clear();
     setTestMode(false);
     syncUnresolved();
   }
 
   function settle(body) {
-    refId.current = null; // anything but PENDING is final for this reference
+    untrack(); // anything but PENDING is final for this reference
     setStatus(body.status);
     setReason(body.mock ? null : body.reason);
     setTestMode(Boolean(body.mock));
@@ -84,9 +173,9 @@ export default function usePayment(event, eventPackage, provider) {
     syncUnresolved();
   }
 
-  function startPolling(id, delay) {
-    refId.current = id;
-    syncUnresolved();
+  function startPolling(id, delay, wasUncertain = false) {
+    setUncertain(wasUncertain);
+    track(id, eventPackage._id, provider.id, wasUncertain);
     setStatus("pending");
     const gen = generation.current;
     timer.current = setTimeout(() => poll(1, gen), delay);
@@ -99,8 +188,9 @@ export default function usePayment(event, eventPackage, provider) {
     starting.current = true;
     syncUnresolved();
     setBusy(true);
+    let res;
     try {
-      const res = await fetch(`${API_URL}/payments/start`, {
+      res = await fetch(`${API_URL}/payments/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -112,6 +202,16 @@ export default function usePayment(event, eventPackage, provider) {
           buyer,
         }),
       });
+    } catch {
+      // No answer at all: the request may have reached the provider. Pay stays hidden until startOver().
+      if (gen !== generation.current) return;
+      starting.current = false;
+      setLostStart(true);
+      syncUnresolved();
+      setBusy(false);
+      return;
+    }
+    try {
       if (gen !== generation.current) return;
       starting.current = false;
       if (res.status === 200) return settle(await res.json());
@@ -133,7 +233,7 @@ export default function usePayment(event, eventPackage, provider) {
       if (res.status === 500) {
         // The provider may have taken the money; the ticket can still be issued, so keep checking.
         const body = await res.clone().json().catch(() => ({}));
-        if (body.refId) return startPolling(body.refId, 0);
+        if (body.refId) return startPolling(body.refId, 0, true);
       }
       throw Error(await readError(res, "Payment request failed"));
     } catch (err) {
@@ -195,7 +295,8 @@ export default function usePayment(event, eventPackage, provider) {
   }
 
   return {
-    status, reason, error, tickets, busy, timedOut, testMode, unresolved,
+    status, reason, error, tickets, busy, timedOut, testMode, unresolved, unknownOutcome, uncertain,
+    pendingRef, refId: pendingRef?.refId || null,
     pay, lookup, checkAgain, reset, startOver,
   };
 }

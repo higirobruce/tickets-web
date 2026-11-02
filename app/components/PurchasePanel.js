@@ -10,7 +10,7 @@ import Loader from "./Loader";
 const LOGOS = { momo: "/images/mtn.png", lumicash: "/images/lumicash.png" };
 const PLACEHOLDERS = { 250: "78xxxxxxx", 257: "6xxxxxxx" };
 const LOOKUP_DELAY_MS = 600;
-const NO_LOOKUP = { checking: false, ok: false, name: null, reason: null };
+const NO_LOOKUP = { checking: false, ok: false, name: null, reason: null, digits: null };
 
 /** The providers that can take this currency, and the one in use (the chosen one if it fits, else the first). */
 function pickProvider(providers, currency, providerId) {
@@ -39,6 +39,29 @@ export default function PurchasePanel({ event }) {
   const phoneRule = provider?.phone;
   const phoneValid = !phoneRule || new RegExp(phoneRule.pattern).test(digits);
   const needsLookup = provider?.id === "lumicash";
+  const holderConfirmed = lookup.ok && lookup.digits === digits; // the holder shown is for the number typed now
+
+  // The payment still waiting for a final status, and the provider it went through (for its copy).
+  const pending = payment.pendingRef;
+  const payProvider = (pending && providers.find((p) => p.id === pending.providerId)) || provider;
+  const payLabel = payProvider?.label || "the provider";
+  // Lumicash answers synchronously, and a failed start may already have moved money:
+  // either way there is nothing to approve on the phone, only an outcome to confirm.
+  const synchronous = (pending?.providerId || provider?.id) === "lumicash" || payment.uncertain;
+  // A resumed reference for another package or provider than the one on screen: resolve it first.
+  const mismatch = Boolean(pending) && !providersLoading && (selected?._id !== pending.packageId || provider?.id !== pending.providerId);
+  const resolveFirst = payment.timedOut || payment.unknownOutcome || mismatch;
+  const shortRef = payment.refId ? payment.refId.slice(0, 8) : null;
+
+  // After a reload, show the package and provider of the payment being resumed.
+  useEffect(() => {
+    if (!pending || selected) return;
+    const pkg = packages.find((p) => p._id === pending.packageId);
+    if (pkg) setSelected(pkg);
+    setProviderId(pending.providerId);
+    // Only a newly resumed reference should move the selection.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending?.refId]);
 
   // Lumicash: confirm the wallet holder once the number looks complete.
   useEffect(() => {
@@ -48,7 +71,7 @@ export default function PurchasePanel({ event }) {
     const t = setTimeout(async () => {
       setLookup({ ...NO_LOOKUP, checking: true });
       const result = await payment.lookup(digits);
-      if (live) setLookup({ checking: false, ok: Boolean(result.ok), name: result.name || null, reason: result.reason || null });
+      if (live) setLookup({ checking: false, ok: Boolean(result.ok), name: result.name || null, reason: result.reason || null, digits });
     }, LOOKUP_DELAY_MS);
     return () => {
       live = false;
@@ -81,7 +104,7 @@ export default function PurchasePanel({ event }) {
       setFormError(phoneRule.hint);
       return;
     }
-    if (needsLookup && !lookup.ok) return;
+    if (needsLookup && !holderConfirmed) return;
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
       setFormError("That email address does not look right.");
       return;
@@ -133,7 +156,7 @@ export default function PurchasePanel({ event }) {
 
       {selected && !finished && !providersLoading && !provider && (
         providersError
-          ? <div className="notice-bad">{providersError}</div>
+          ? <div className="notice-bad">Online payment is temporarily unavailable. Please try again later.</div>
           : <div className="notice-warn">Online payment is not available for tickets priced in {currency}.</div>
       )}
 
@@ -201,7 +224,8 @@ export default function PurchasePanel({ event }) {
             </div>
           </div>
           {needsLookup && lookup.checking && <p className="text-sm text-ink-soft">Checking the wallet holder…</p>}
-          {needsLookup && lookup.ok && lookup.name && <p className="text-sm">Wallet holder: <span className="font-semibold">{lookup.name}</span></p>}
+          {needsLookup && holderConfirmed && lookup.name && <p className="text-sm">Wallet holder: <span className="font-semibold">{lookup.name}</span></p>}
+          {needsLookup && holderConfirmed && !lookup.name && <p className="text-sm">Wallet found</p>}
           {needsLookup && !lookup.checking && !lookup.ok && lookup.reason && <div className="notice-bad">{lookup.reason}</div>}
           {formError && <div role="alert" className="notice-bad">{formError}</div>}
           {payment.error && <div role="alert" className="notice-bad">{payment.error}</div>}
@@ -210,34 +234,49 @@ export default function PurchasePanel({ event }) {
             <span className="font-display font-bold text-lg tabular-nums">{total.toLocaleString()} {currency}</span>
           </div>
           {!locked && (
-            <button type="submit" className="btn-primary w-full" disabled={needsLookup && !lookup.ok}>
+            <button type="submit" className="btn-primary w-full" disabled={needsLookup && !holderConfirmed}>
               {logo && <Image src={logo} alt="" width={22} height={22} className="rounded-sm" />}
               Pay {total.toLocaleString()} {currency}
+              {needsLookup && phoneRule && ` from +${phoneRule.countryCode} ${digits}`}
             </button>
           )}
-          {payment.busy && !payment.timedOut && (
-            <div className="space-y-2">
-              <Loader />
-              <p className="text-sm text-center text-ink-soft">
-                Approve the payment on your phone. Keep this page open; we check with {provider.label} every few seconds.
-              </p>
-            </div>
-          )}
-          {payment.timedOut && (
-            <div className="space-y-2">
-              <div className="notice-warn">
-                No confirmation from {provider.label} yet. If you approved the payment on your phone, check again. Your ticket will also arrive by SMS.
-              </div>
-              <button type="button" onClick={payment.checkAgain} className="btn-ghost w-full">Check again</button>
-              <div className="text-center text-sm">
-                <button type="button" onClick={payment.startOver} className="underline text-ink-soft hover:text-ink">
-                  Start a new payment
-                </button>
-                <p className="text-xs text-ink-soft">Only if you did not approve the first request. Approving both would charge you twice.</p>
-              </div>
-            </div>
-          )}
         </form>
+      )}
+
+      {!finished && payment.busy && !resolveFirst && (
+        <div className="space-y-2">
+          <Loader />
+          <p className="text-sm text-center text-ink-soft">
+            {synchronous
+              ? `Checking the payment with ${payLabel}. Keep this page open.`
+              : `Approve the payment on your phone. Keep this page open; we check with ${payLabel} every few seconds.`}
+          </p>
+        </div>
+      )}
+
+      {!finished && resolveFirst && (
+        <div className="space-y-2">
+          <div className="notice-warn">
+            {payment.unknownOutcome
+              ? "We could not reach the server to confirm your payment. If your phone or wallet shows a debit, do not pay again."
+              : synchronous
+                ? `We could not confirm this payment with ${payLabel}. Reference ${shortRef}. If your wallet was debited, do not pay again: check again, or keep the reference for support.`
+                : `No confirmation from ${payLabel} yet. If you approved the payment on your phone, check again. Your ticket will also arrive by SMS.`}
+          </div>
+          {payment.refId && (
+            <button type="button" onClick={payment.checkAgain} className="btn-ghost w-full">Check again</button>
+          )}
+          <div className="text-center text-sm">
+            <button type="button" onClick={payment.startOver} className="underline text-ink-soft hover:text-ink">
+              Start a new payment
+            </button>
+            <p className="text-xs text-ink-soft">
+              {synchronous || payment.unknownOutcome
+                ? "Only if your wallet was not debited. Paying again would charge you twice."
+                : "Only if you did not approve the first request. Approving both would charge you twice."}
+            </p>
+          </div>
+        </div>
       )}
 
       {payment.status === "SUCCESSFUL" && (
