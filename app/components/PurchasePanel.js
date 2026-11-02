@@ -1,14 +1,18 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CheckBadgeIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import usePayment from "../hooks/usePayment";
+import useProviders from "../hooks/useProviders";
 import Loader from "./Loader";
 
-const PHONE_RE = /^7\d{8}$/;
+const LOGOS = { momo: "/images/mtn.png", lumicash: "/images/lumicash.png" };
+const PLACEHOLDERS = { 250: "78xxxxxxx", 257: "6xxxxxxx" };
+const LOOKUP_DELAY_MS = 600;
+const NO_LOOKUP = { checking: false, ok: false, name: null, reason: null };
 
-/** Package picker plus the MoMo payment form and its result. Lives on the event page. */
+/** Package picker plus the payment method, payment form and result. Lives on the event page. */
 export default function PurchasePanel({ event }) {
   const packages = event.packages || [];
   const [selected, setSelected] = useState(null);
@@ -17,8 +21,36 @@ export default function PurchasePanel({ event }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [formError, setFormError] = useState(null);
-  const payment = usePayment(event, selected);
+  const [providerId, setProviderId] = useState(null);
+  const [lookup, setLookup] = useState(NO_LOOKUP);
+  const { providers, loading: providersLoading, error: providersError } = useProviders();
+  const currency = selected?.currency || "RWF";
+  const options = providers.filter((p) => !p.currencies.length || p.currencies.includes(currency));
+  const provider = options.find((p) => p.id === providerId) || options[0] || null;
+  const payment = usePayment(event, selected, provider);
   const past = new Date(event.date) < new Date();
+  const digits = phone.replace(/\s+/g, "");
+  const phoneRule = provider?.phone;
+  const phoneValid = !phoneRule || new RegExp(phoneRule.pattern).test(digits);
+  const needsLookup = provider?.id === "lumicash";
+
+  // Lumicash: confirm the wallet holder once the number looks complete.
+  useEffect(() => {
+    setLookup(NO_LOOKUP);
+    if (!needsLookup || !digits || !phoneValid) return;
+    let live = true;
+    const t = setTimeout(async () => {
+      setLookup({ ...NO_LOOKUP, checking: true });
+      const result = await payment.lookup(digits);
+      if (live) setLookup({ checking: false, ok: Boolean(result.ok), name: result.name || null, reason: result.reason || null });
+    }, LOOKUP_DELAY_MS);
+    return () => {
+      live = false;
+      clearTimeout(t);
+    };
+    // payment.lookup is a fresh function each render; the inputs below are what matter.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsLookup, digits, phoneValid, provider?.id]);
 
   function choose(pkg) {
     setSelected(pkg);
@@ -27,14 +59,21 @@ export default function PurchasePanel({ event }) {
     payment.reset();
   }
 
+  function chooseProvider(p) {
+    setProviderId(p.id);
+    setPhone("");
+    setFormError(null);
+    payment.reset();
+  }
+
   function submit(e) {
     e.preventDefault();
     setFormError(null);
-    const digits = phone.trim();
-    if (!PHONE_RE.test(digits)) {
-      setFormError("Enter the 9-digit MTN number after +250, starting with 7.");
+    if (!phoneValid) {
+      setFormError(phoneRule.hint);
       return;
     }
+    if (needsLookup && !lookup.ok) return;
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
       setFormError("That email address does not look right.");
       return;
@@ -44,6 +83,7 @@ export default function PurchasePanel({ event }) {
 
   const total = selected ? selected.price * quantity : 0;
   const finished = payment.status && payment.status !== "pending";
+  const logo = provider && LOGOS[provider.id];
 
   return (
     <div className="card p-5 space-y-5">
@@ -81,19 +121,52 @@ export default function PurchasePanel({ event }) {
         </div>
       </div>
 
-      {selected && !finished && (
+      {selected && !finished && providersLoading && <Loader />}
+
+      {selected && !finished && !providersLoading && !provider && (
+        providersError
+          ? <div className="notice-bad">{providersError}</div>
+          : <div className="notice-warn">Online payment is not available for tickets priced in {currency}.</div>
+      )}
+
+      {selected && !finished && provider && (
         <form onSubmit={submit} className="space-y-4" aria-busy={payment.busy}>
+          {options.length > 1 && (
+            <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Payment method">
+              {options.map((p) => {
+                const active = p.id === provider.id;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    disabled={payment.busy}
+                    onClick={() => chooseProvider(p)}
+                    className={`flex items-center gap-3 rounded-[var(--radius-control)] px-4 py-3 text-left ring-1 transition-colors ${
+                      active ? "ring-2 ring-ember bg-ember-soft" : "ring-mist hover:ring-ink-soft"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {LOGOS[p.id] && <Image src={LOGOS[p.id]} alt="" width={22} height={22} className="rounded-sm" />}
+                    <span className="font-semibold">{p.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
             <div>
               <label htmlFor="tel" className="label">Enter a telephone number for payment</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-3 flex items-center text-sm text-ink-soft">+250</span>
+                {phoneRule && (
+                  <span className="absolute inset-y-0 left-3 flex items-center text-sm text-ink-soft">+{phoneRule.countryCode}</span>
+                )}
                 <input
                   id="tel"
                   type="tel"
                   inputMode="numeric"
-                  className="input pl-14"
-                  placeholder="78xxxxxxx"
+                  className={`input ${phoneRule ? "pl-14" : ""}`}
+                  placeholder={PLACEHOLDERS[phoneRule?.countryCode] || ""}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   disabled={payment.busy}
@@ -119,30 +192,33 @@ export default function PurchasePanel({ event }) {
               <input id="buyerEmail" type="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} disabled={payment.busy} autoComplete="email" />
             </div>
           </div>
+          {needsLookup && lookup.checking && <p className="text-sm text-ink-soft">Checking the wallet holder…</p>}
+          {needsLookup && lookup.ok && lookup.name && <p className="text-sm">Wallet holder: <span className="font-semibold">{lookup.name}</span></p>}
+          {needsLookup && !lookup.checking && !lookup.ok && lookup.reason && <div className="notice-bad">{lookup.reason}</div>}
           {formError && <div role="alert" className="notice-bad">{formError}</div>}
           {payment.error && <div role="alert" className="notice-bad">{payment.error}</div>}
           <div className="flex items-center justify-between text-sm">
             <span className="text-ink-soft">Total</span>
-            <span className="font-display font-bold text-lg tabular-nums">{total.toLocaleString()} {selected.currency || "RWF"}</span>
+            <span className="font-display font-bold text-lg tabular-nums">{total.toLocaleString()} {currency}</span>
           </div>
           {!payment.busy && (
-            <button type="submit" className="btn-primary w-full">
-              <Image src="/images/mtn.png" alt="" width={22} height={22} className="rounded-sm" />
-              Pay online
+            <button type="submit" className="btn-primary w-full" disabled={needsLookup && !lookup.ok}>
+              {logo && <Image src={logo} alt="" width={22} height={22} className="rounded-sm" />}
+              Pay {total.toLocaleString()} {currency}
             </button>
           )}
           {payment.busy && !payment.timedOut && (
             <div className="space-y-2">
               <Loader />
               <p className="text-sm text-center text-ink-soft">
-                Approve the payment on your phone. Keep this page open; we check with MTN every few seconds.
+                Approve the payment on your phone. Keep this page open; we check with {provider.label} every few seconds.
               </p>
             </div>
           )}
           {payment.timedOut && (
             <div className="space-y-2">
               <div className="notice-warn">
-                No confirmation from MTN yet. If you approved the payment on your phone, check again. Your ticket will also arrive by SMS.
+                No confirmation from {provider.label} yet. If you approved the payment on your phone, check again. Your ticket will also arrive by SMS.
               </div>
               <button type="button" onClick={payment.checkAgain} className="btn-ghost w-full">Check again</button>
             </div>
