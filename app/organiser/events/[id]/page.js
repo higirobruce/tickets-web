@@ -50,6 +50,9 @@ function Tile({ label, value, hint }) {
   );
 }
 
+const buyerPhone = (t) => t.payment?.phone ?? t.momoPayload?.payer?.partyId;
+const paidAmount = (t) => t.payment?.amount ?? t.momoPayload?.amount;
+
 export default function EventDashboard() {
   const { id } = useParams();
   const [data, setData] = useState(null);
@@ -81,8 +84,9 @@ export default function EventDashboard() {
   if (!data) return <main className="page py-8"><Loader /></main>;
 
   const { event, totals, byPackage, recent } = data;
-  const currency = event.packages?.[0]?.currency || "RWF";
-  const labels = byPackage.map((p) => p.title);
+  const revenue = totals.revenue || [];
+  const multiCurrency = new Set(byPackage.map((p) => p.currency)).size > 1;
+  const labels = byPackage.map((p) => (multiCurrency ? `${p.title} (${p.currency})` : p.title));
   const capacityHint =
     totals.tickets > 0 ? `${Math.round((totals.consumed / totals.tickets) * 100)}% checked in` : null;
 
@@ -112,8 +116,14 @@ export default function EventDashboard() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Tile label="Tickets issued" value={totals.tickets.toLocaleString()} hint={`${totals.paid.toLocaleString()} paid by MoMo`} />
-        <Tile label={`Revenue (${currency})`} value={totals.revenue.toLocaleString()} />
+        <Tile label="Tickets issued" value={totals.tickets.toLocaleString()} hint={`${totals.paid.toLocaleString()} paid online`} />
+        {revenue.length === 0 ? (
+          <Tile label="Revenue" value="0" />
+        ) : (
+          revenue.map((r) => (
+            <Tile key={r.currency} label={`Revenue (${r.currency})`} value={(r.amount ?? 0).toLocaleString()} />
+          ))
+        )}
         <Tile label="Checked in" value={totals.consumed.toLocaleString()} hint={capacityHint} />
         <Tile label="Not yet used" value={totals.pending.toLocaleString()} />
       </div>
@@ -133,6 +143,7 @@ export default function EventDashboard() {
               <thead className="text-xs text-ink-soft text-left">
                 <tr>
                   <th className="py-1">Package</th>
+                  <th className="py-1">Currency</th>
                   <th className="py-1 text-right">Sold</th>
                   <th className="py-1 text-right">In</th>
                   <th className="py-1 text-right">Revenue</th>
@@ -140,11 +151,12 @@ export default function EventDashboard() {
               </thead>
               <tbody>
                 {byPackage.map((p) => (
-                  <tr key={p.title} className="border-t border-mist">
+                  <tr key={`${p.title}-${p.currency}`} className="border-t border-mist">
                     <td className="py-1">{p.title}</td>
+                    <td className="py-1">{p.currency}</td>
                     <td className="py-1 text-right tabular-nums">{p.count}</td>
                     <td className="py-1 text-right tabular-nums">{p.consumed}</td>
-                    <td className="py-1 text-right tabular-nums">{p.revenue.toLocaleString()}</td>
+                    <td className="py-1 text-right tabular-nums">{(p.revenue ?? 0).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -164,7 +176,7 @@ export default function EventDashboard() {
         </div>
         {recent.length === 0 && (
           <div className="text-sm text-ink-soft">
-            No tickets yet. Share the public page so buyers can pay with MTN MoMo.
+            No tickets yet. Share the public page so buyers can pay online.
           </div>
         )}
         {recent.length > 0 && (
@@ -186,8 +198,8 @@ export default function EventDashboard() {
                     <Link href={`/tickets/${t._id}`} className="underline">{t.number}</Link>
                   </td>
                   <td className="py-1">{t.ticketPackage?.title}</td>
-                  <td className="py-1 tabular-nums">{t.momoPayload?.payer?.partyId ? `+${t.momoPayload.payer.partyId}` : "—"}</td>
-                  <td className="py-1 text-right tabular-nums">{t.momoPayload?.amount ? Number(t.momoPayload.amount).toLocaleString() : "—"}</td>
+                  <td className="py-1 tabular-nums">{buyerPhone(t) ? `+${buyerPhone(t)}` : "—"}</td>
+                  <td className="py-1 text-right tabular-nums">{paidAmount(t) ? `${Number(paidAmount(t)).toLocaleString()} ${t.payment?.currency ?? ""}`.trim() : "—"}</td>
                   <td className="py-1">
                     <span className={t.status === "consumed" ? "chip-ok" : "chip-warn"}>
                       {t.status}

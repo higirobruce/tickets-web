@@ -15,6 +15,9 @@ function Tile({ label, value }) {
   );
 }
 
+const revenueText = (revenue) =>
+  revenue?.length ? revenue.map((r) => `${(r.amount ?? 0).toLocaleString()} ${r.currency}`).join(" · ") : "—";
+
 const ROLES = ["admin", "organiser", "staff"];
 
 /** Platform-wide view for admins: every organiser, their sales, and recent events. */
@@ -58,7 +61,13 @@ export default function Platform() {
         <Tile label="Events" value={totals.events} />
         <Tile label="Tickets" value={totals.tickets.toLocaleString()} />
         <Tile label="Paid" value={totals.paid.toLocaleString()} />
-        <Tile label="Revenue (RWF)" value={totals.revenue.toLocaleString()} />
+        {(totals.revenue || []).length === 0 ? (
+          <Tile label="Revenue" value="0" />
+        ) : (
+          totals.revenue.map((r) => (
+            <Tile key={r.currency} label={`Revenue (${r.currency})`} value={(r.amount ?? 0).toLocaleString()} />
+          ))
+        )}
         <Tile label="Checked in" value={totals.consumed.toLocaleString()} />
       </div>
 
@@ -76,7 +85,7 @@ export default function Platform() {
                   <td className="px-4 py-2 text-ink-soft">{o.firstName} {o.lastName}<br />{o.email}</td>
                   <td className="px-4 py-2 text-right tabular-nums">{o.events}</td>
                   <td className="px-4 py-2 text-right tabular-nums">{o.tickets}</td>
-                  <td className="px-4 py-2 text-right tabular-nums">{o.revenue.toLocaleString()}</td>
+                  <td className="px-4 py-2 text-right tabular-nums">{revenueText(o.revenue)}</td>
                   <td className="px-4 py-2 text-ink-soft">{dayjs(o.createdAt).format("D MMM YYYY")}</td>
                   <td className="px-4 py-2">
                     <select aria-label={`Role for ${o.email}`} className="input py-1" value={o.role} onChange={(e) => setRole(o._id, e.target.value)}>

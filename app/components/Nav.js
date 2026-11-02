@@ -23,7 +23,10 @@ export default function Nav() {
   const links = user
     ? [
         ...(user.role !== "staff" ? [{ href: "/organiser", label: "My events" }] : []),
-        ...(user.role === "admin" ? [{ href: "/admin/platform", label: "Platform" }] : []),
+        ...(user.role === "admin" ? [
+              { href: "/admin/platform", label: "Platform" },
+              { href: "/admin/payments", label: "Payments" },
+            ] : []),
         { href: "/scan", label: "Scan" },
       ]
     : [

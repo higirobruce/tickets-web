@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import dayjs from "dayjs";
 import EventHero from "@/app/components/EventHero";
 import PurchasePanel from "@/app/components/PurchasePanel";
+import PaymentMethods from "@/app/components/PaymentMethods";
 import { fromPrice } from "@/app/components/EventCard";
 import { fetchPublic } from "@/app/lib/server-api";
 
@@ -47,7 +48,7 @@ export default async function EventPage({ params }) {
           <dl className="grid sm:grid-cols-3 gap-3 text-sm">
             <div className="card p-4"><dt className="text-ink-soft">Date and time</dt><dd className="font-semibold">{dayjs(event.date).format("ddd D MMM YYYY, HH:mm")}</dd></div>
             <div className="card p-4"><dt className="text-ink-soft">Venue</dt><dd className="font-semibold">{event.location}</dd></div>
-            <div className="card p-4"><dt className="text-ink-soft">Payment</dt><dd className="font-semibold">MTN Mobile Money</dd></div>
+            <div className="card p-4"><dt className="text-ink-soft">Payment</dt><dd className="font-semibold"><PaymentMethods /></dd></div>
           </dl>
         </section>
         <div className="lg:sticky lg:top-20">

@@ -4,9 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { api } from "@/app/lib/api";
+import useProviders from "@/app/hooks/useProviders";
 
 const STATUSES = ["upcoming", "pending", "ongoing", "postponed", "cancelled", "expired"];
-const CURRENCIES = ["RWF", "USD", "EUR"];
+const CURRENCIES = ["RWF", "USD", "EUR", "BIF"];
 const emptyPackage = () => ({ title: "", price: "", currency: "RWF", capacity: "", soldOut: false });
 
 /** Create or edit an event. Pass `event` to edit. */
@@ -27,6 +28,12 @@ export default function EventForm({ event }) {
   });
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
+  const { providers, loading: providersLoading, error: providersError } = useProviders();
+  // Only warn once we actually know the provider list.
+  const unpayable = (currency) =>
+    !providersLoading &&
+    !providersError &&
+    !providers.some((pr) => !pr.currencies?.length || pr.currencies.includes(currency));
 
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
   const setPackage = (i, key, value) =>
@@ -144,6 +151,11 @@ export default function EventForm({ event }) {
             <button type="button" aria-label="Remove package" className="col-span-1 text-ink-soft hover:text-bad" onClick={() => setForm({ ...form, packages: form.packages.filter((_, idx) => idx !== i) })}>
               <XMarkIcon className="w-5 h-5" />
             </button>
+            {unpayable(p.currency) && (
+              <div className="col-span-12 notice-warn text-xs py-1">
+                No online payment method accepts {p.currency} on this installation
+              </div>
+            )}
           </div>
         ))}
       </div>
