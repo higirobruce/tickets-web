@@ -1,9 +1,5 @@
-import React from 'react'
+import { redirect } from "next/navigation";
 
 export default function Events() {
-  return (
-    <div>
-      Events
-    </div>
-  )
+  redirect("/");
 }

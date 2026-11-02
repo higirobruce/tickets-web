@@ -26,6 +26,17 @@ const nextConfig = {
             port: '',
             pathname: '/**',
           },
+          {
+            protocol: 'https',
+            hostname: 'images.unsplash.com',
+            port: '',
+            pathname: '/**',
+          },
+          // Organisers paste their own poster URLs, so any https host is allowed.
+          {
+            protocol: 'https',
+            hostname: '**',
+          },
 
           
         ],

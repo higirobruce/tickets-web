@@ -1,3 +1,63 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/*
+  EvenTixr design tokens.
+  Colour: paper (page), ink (text), ember (the one accent, from the logo), night (nav and ticket stub),
+          gold (price highlights, sparingly), mist (hairlines).
+  Type:   Archivo for display, Instrument Sans for everything else (loaded in app/layout.js).
+  Layout: poster-first cards with the event date as a typographic stamp; flat surfaces, hairline borders, no shadows.
+*/
+@theme {
+  --color-paper: #f6f5f2;
+  --color-surface: #ffffff;
+  --color-ink: #17141a;
+  --color-ink-soft: #5d5864;
+  --color-mist: #e4e2dc;
+  --color-ember: #e8541e;
+  --color-ember-deep: #c2420f;
+  --color-ember-soft: #fdebe3;
+  --color-night: #1e1b3a;
+  --color-night-soft: #2c2850;
+  --color-gold: #f2b23b;
+  --color-ok: #1f7a3f;
+  --color-ok-soft: #e3f3e8;
+  --color-warn: #8a5a05;
+  --color-warn-soft: #fdf0d3;
+  --color-bad: #a3261a;
+  --color-bad-soft: #fbe1dc;
+
+  --font-display: var(--font-archivo), "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--font-instrument), "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+
+  --radius-card: 14px;
+  --radius-control: 8px;
+}
+
+@layer base {
+  html { color-scheme: light; }
+  body { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.01em; text-wrap: balance; }
+  :focus-visible { outline: 2px solid var(--color-ember); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+}
+
+@layer components {
+  .btn, .btn-primary, .btn-secondary, .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed; }
+  .btn-primary { @apply bg-ember text-white hover:bg-ember-deep; }
+  .btn-secondary { @apply bg-night text-white hover:bg-night-soft; }
+  .btn-ghost { @apply bg-transparent text-ink ring-1 ring-mist hover:bg-surface; }
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+  .card { @apply bg-surface rounded-[var(--radius-card)] ring-1 ring-mist; }
+  .input { @apply w-full rounded-[var(--radius-control)] bg-surface ring-1 ring-mist px-3 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 focus:ring-2 focus:ring-ember focus:outline-none; }
+  .label { @apply block text-sm font-medium text-ink mb-1.5; }
+  .chip, .chip-ok, .chip-warn, .chip-bad, .chip-muted { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .chip-ok { @apply bg-ok-soft text-ok; }
+  .chip-warn { @apply bg-warn-soft text-warn; }
+  .chip-bad { @apply bg-bad-soft text-bad; }
+  .chip-muted { @apply bg-mist text-ink-soft; }
+  .notice, .notice-bad, .notice-ok, .notice-warn { @apply rounded-[var(--radius-control)] px-3 py-2.5 text-sm; }
+  .notice-bad { @apply bg-bad-soft text-bad; }
+  .notice-ok { @apply bg-ok-soft text-ok; }
+  .notice-warn { @apply bg-warn-soft text-warn; }
+  .page { @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8; }
+}
